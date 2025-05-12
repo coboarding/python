@@ -1,0 +1,35 @@
+# docker-compose.yml (uzupełnienie)
+version: '3.8'
+
+services:
+
+  web-interface:
+    build:
+      context: ./containers/web-interface
+    container_name: web-interface
+    ports:
+      - "8082:80"    # HTTP przekierowanie
+      - "8443:443"   # HTTPS dla rozpoznawania mowy
+    depends_on:
+      - llm-orchestrator
+      - voice-interface
+      - novnc
+    networks:
+      - auto-form-filler-network
+
+  voice-interface:
+    build: ./containers/voice-interface
+    container_name: voice-interface
+    volumes:
+      - /dev/snd:/dev/snd  # Dostęp do urządzeń audio
+    devices:
+      - /dev/snd:/dev/snd  # Urządzenia audio
+    ports:
+      - "6000:6000"  # Port API głosowego
+    depends_on:
+      - llm-orchestrator
+
+
+networks:
+  auto-form-filler-network:
+    driver: bridge
