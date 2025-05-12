@@ -3,6 +3,76 @@ version: '3.8'
 
 services:
 
+  llm-orchestrator:
+    build: ./containers/llm-orchestrator
+    container_name: llm-orchestrator
+    volumes:
+      - ./volumes/models:/app/models
+      - ./volumes/config:/app/config
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "5000:5000"  # API LLM
+
+  browser-service:
+    build: ./containers/browser-service
+    container_name: browser-service
+    volumes:
+      - ./volumes/cv:/app/cv
+      - ./volumes/config:/app/config
+      - ./volumes/passwords:/app/passwords
+      - ./volumes/recordings:/app/recordings
+    environment:
+      - DISPLAY=:99
+    depends_on:
+      - llm-orchestrator
+
+  novnc:
+    image: theasp/novnc:latest
+    container_name: novnc
+    environment:
+      - DISPLAY_WIDTH=1920
+      - DISPLAY_HEIGHT=1080
+      - RUN_XTERM=no
+      - RUN_FLUXBOX=yes
+    ports:
+      - "8080:8080"  # noVNC web interface
+    depends_on:
+      - browser-service
+
+  test-forms-server:
+    build:
+      context: ./containers/test-forms-server
+    container_name: test-forms-server
+    ports:
+      - "8090:80"  # Dostęp z zewnątrz do testowych formularzy
+    volumes:
+      - ./containers/test-forms-server/forms:/usr/share/nginx/html/forms
+    networks:
+      - auto-form-filler-network
+
+  test-runner:
+    build:
+      context: ./containers/test-runner
+    container_name: test-runner
+    depends_on:
+      - test-forms-server
+      - llm-orchestrator
+      - browser-service
+    volumes:
+      - ./volumes:/volumes
+    networks:
+      - auto-form-filler-network
+    # Domyślnie zatrzymany - uruchamiamy go ręcznie podczas testów
+    command: sleep infinity
+
   web-interface:
     build:
       context: ./containers/web-interface

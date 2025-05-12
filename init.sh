@@ -1,111 +1,46 @@
 #!/bin/bash
+# init.sh - skrypt inicjalizacyjny systemu
 
-# Function to create directory structure with comments
-create_project_structure() {
-    # Main project directory
-    mkdir -p AutoFormFiller-Pro
-    cd AutoFormFiller-Pro
+# Kolory do komunikatów
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
 
-    # Containers directory and its subdirectories
-    mkdir -p containers/browser-service/browsers
-    mkdir -p containers/browser-service/extensions/chrome
-    mkdir -p containers/browser-service/extensions/firefox
-    mkdir -p containers/browser-service/scripts
-    # Create files in browser-service
-    touch containers/browser-service/Dockerfile
-    touch containers/browser-service/browsers/chrome-setup.sh
-    touch containers/browser-service/browsers/firefox-setup.sh
-    touch containers/browser-service/supervisord.conf
-    touch containers/browser-service/scripts/form-fill.py
+echo -e "${BLUE}======================================${NC}"
+echo -e "${GREEN}   Inicjalizacja AutoFormFiller Pro  ${NC}"
+echo -e "${BLUE}======================================${NC}"
 
-    # LLM Orchestrator
-    mkdir -p containers/llm-orchestrator/model-configs
-    mkdir -p containers/llm-orchestrator/data
-    touch containers/llm-orchestrator/Dockerfile
-    touch containers/llm-orchestrator/api.py
-    touch containers/llm-orchestrator/detect-hardware.py
-    touch containers/llm-orchestrator/pipeline_generator.py
-    touch containers/llm-orchestrator/model-configs/cpu-configs.json
-    touch containers/llm-orchestrator/model-configs/gpu-configs.json
-    touch containers/llm-orchestrator/data/job_portals_knowledge.json
+# Utworzenie struktury katalogów
+mkdir -p volumes/{cv,models,config,passwords,recordings}
 
-    # NoVNC
-    mkdir -p containers/novnc
-    touch containers/novnc/Dockerfile
+# Sprawdzenie dostępności GPU
+if command -v nvidia-smi &> /dev/null; then
+    echo -e "${GREEN}Wykryto GPU NVIDIA. System będzie używał akceleracji GPU.${NC}"
+    USE_GPU=true
+else
+    echo -e "${YELLOW}Nie wykryto GPU NVIDIA. System będzie działał na CPU.${NC}"
+    USE_GPU=false
+fi
 
-    # Web Terminal
-    mkdir -p containers/web-terminal
-    touch containers/web-terminal/Dockerfile
-    touch containers/web-terminal/startup.sh
+# Podpowiedź o umieszczeniu CV
+echo -e "${YELLOW}Pamiętaj, aby umieścić swoje CV w katalogu 'volumes/cv/'${NC}"
 
-    # Test Forms Server
-    mkdir -p containers/test-forms-server/forms
-    touch containers/test-forms-server/Dockerfile
-    touch containers/test-forms-server/nginx.conf
-    touch containers/test-forms-server/forms/simple-form.html
-    touch containers/test-forms-server/forms/complex-form.html
-    touch containers/test-forms-server/forms/file-upload-form.html
+# Pobieranie modeli LLM jeśli nie istnieją
+if [ ! -f "volumes/models/phi-2-q4.gguf" ]; then
+    echo -e "${GREEN}Pobieranie modelu podstawowego (Phi-2)...${NC}"
+    curl -L -o volumes/models/phi-2-q4.gguf https://huggingface.co/TheBloke/Phi-2-GGUF/resolve/main/phi-2.Q4_K_M.gguf
+fi
 
-    # Test Runner
-    mkdir -p containers/test-runner/tests
-    touch containers/test-runner/Dockerfile
-    touch containers/test-runner/tests/run-tests.py
-    touch containers/test-runner/tests/test-simple-form.py
-    touch containers/test-runner/tests/test-complex-form.py
-    touch containers/test-runner/tests/test-file-upload.py
+# Uruchomienie systemu
+echo -e "${GREEN}Uruchamianie systemu AutoFormFiller Pro...${NC}"
+docker-compose up -d
 
-    # Web Interface
-    mkdir -p containers/web-interface/src/components
-    mkdir -p containers/web-interface/public
-    touch containers/web-interface/Dockerfile
-    touch containers/web-interface/nginx.conf
-    touch containers/web-interface/package.json
-    touch containers/web-interface/src/App.js
-    touch containers/web-interface/src/App.css
-    touch containers/web-interface/src/index.js
-    touch containers/web-interface/src/index.css
-    touch containers/web-interface/src/components/VoiceControl.js
-    touch containers/web-interface/public/index.html
+# Informacja o dostępie
+echo -e "${GREEN}System został uruchomiony!${NC}"
+echo -e "${YELLOW}Terminal webowy dostępny pod adresem:${NC} http://localhost:8081"
+echo -e "${YELLOW}Podgląd przeglądarki dostępny pod adresem:${NC} http://localhost:8080"
 
-    # Volumes
-    mkdir -p volumes/cv
-    mkdir -p volumes/models
-    mkdir -p volumes/config/pipelines
-    mkdir -p volumes/passwords
-    mkdir -p volumes/recordings
-
-    # Project root files
-    touch docker-compose.yml
-    touch .env
-    touch init.sh
-    touch run.sh
-    touch setup-all.sh
-    touch run-tests.sh
-    touch requirements.txt
-    touch config.ini
-    touch LICENSE
-    touch README.md
-
-    # Add comments to some key files
-    echo "# AutoFormFiller-Pro Project Setup" > README.md
-
-    echo "# Docker Compose configuration for AutoFormFiller-Pro" > docker-compose.yml
-
-    echo "# Environment variables for the project" > .env
-
-    echo "#!/bin/bash
-# Initialize the entire AutoFormFiller-Pro project
-# This script sets up all necessary components and dependencies" > init.sh
-    chmod +x init.sh
-
-    echo "# Configuration for browser automation and form filling" > containers/browser-service/supervisord.conf
-
-    echo "# Main API entry point for LLM Orchestrator" > containers/llm-orchestrator/api.py
-
-    echo "# Web interface main React component" > containers/web-interface/src/App.js
-}
-
-# Execute the function
-create_project_structure
-
-echo "Project structure created successfully in $(pwd)"
+echo -e "${BLUE}======================================${NC}"
+echo -e "${GREEN}  AutoFormFiller Pro gotowy do użycia ${NC}"
+echo -e "${BLUE}======================================${NC}"

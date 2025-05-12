@@ -1,0 +1,182 @@
+<!-- test-forms-server/forms/complex-form.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bewerbungsformular | Job Application Form</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .form-section { margin-bottom: 30px; border: 1px solid #eee; padding: 20px; border-radius: 5px; }
+        h2 { color: #2c3e50; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .checkbox-group { display: flex; align-items: center; }
+        .checkbox-group input { width: auto; margin-right: 10px; }
+        .language-selector { margin-bottom: 20px; text-align: right; }
+        .language-btn { padding: 5px 10px; margin-left: 5px; }
+        .active { background: #3498db; color: white; }
+        button { background: #2c3e50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <button class="language-btn active" data-lang="de">Deutsch</button>
+        <button class="language-btn" data-lang="en">English</button>
+    </div>
+
+    <h1 class="lang-de">Bewerbungsformular</h1>
+    <h1 class="lang-en" style="display:none">Job Application Form</h1>
+
+    <form id="job-application-form">
+        <div class="form-section">
+            <h2 class="lang-de">Persönliche Daten</h2>
+            <h2 class="lang-en" style="display:none">Personal Information</h2>
+
+            <div class="form-group">
+                <label class="lang-de" for="name">Vollständiger Name:</label>
+                <label class="lang-en" style="display:none" for="name">Full Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label class="lang-de" for="email">E-Mail-Adresse:</label>
+                <label class="lang-en" style="display:none" for="email">Email Address:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label class="lang-de" for="phone">Telefonnummer:</label>
+                <label class="lang-en" style="display:none" for="phone">Phone Number:</label>
+                <input type="tel" id="phone" name="phone">
+            </div>
+
+            <div class="form-group">
+                <label class="lang-de" for="address">Adresse:</label>
+                <label class="lang-en" style="display:none" for="address">Address:</label>
+                <textarea id="address" name="address" rows="3"></textarea>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 class="lang-de">Berufserfahrung</h2>
+            <h2 class="lang-en" style="display:none">Work Experience</h2>
+
+            <div class="form-group">
+                <label class="lang-de" for="current-position">Aktuelle Position:</label>
+                <label class="lang-en" style="display:none" for="current-position">Current Position:</label>
+                <input type="text" id="current-position" name="current_position">
+            </div>
+
+            <div class="form-group">
+                <label class="lang-de" for="current-company">Aktuelles Unternehmen:</label>
+                <label class="lang-en" style="display:none" for="current-company">Current Company:</label>
+                <input type="text" id="current-company" name="current_company">
+            </div>
+
+            <div class="form-group">
+                <label class="lang-de" for="experience-years">Jahre Berufserfahrung:</label>
+                <label class="lang-en" style="display:none" for="experience-years">Years of Experience:</label>
+                <select id="experience-years" name="experience_years">
+                    <option value="">Bitte wählen...</option>
+                    <option value="0-1">0-1</option>
+                    <option value="1-3">1-3</option>
+                    <option value="3-5">3-5</option>
+                    <option value="5-10">5-10</option>
+                    <option value="10+">10+</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 class="lang-de">Fähigkeiten & Qualifikationen</h2>
+            <h2 class="lang-en" style="display:none">Skills & Qualifications</h2>
+
+            <div class="form-group">
+                <label class="lang-de" for="skills">Technische Fähigkeiten:</label>
+                <label class="lang-en" style="display:none" for="skills">Technical Skills:</label>
+                <textarea id="skills" name="skills" rows="4"></textarea>
+                <small class="lang-de">Kommagetrennte Liste, z.B.: Java, Python, Docker, AWS</small>
+                <small class="lang-en" style="display:none">Comma-separated list, e.g.: Java, Python, Docker, AWS</small>
+            </div>
+
+            <div class="form-group">
+                <label class="lang-de" for="education">Höchster Bildungsabschluss:</label>
+                <label class="lang-en" style="display:none" for="education">Highest Education:</label>
+                <select id="education" name="education">
+                    <option value="">Bitte wählen...</option>
+                    <option value="high-school">Abitur / Hochschulreife</option>
+                    <option value="vocational">Berufsausbildung</option>
+                    <option value="bachelor">Bachelor</option>
+                    <option value="master">Master</option>
+                    <option value="phd">Promotion / PhD</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="lang-de" for="languages">Sprachkenntnisse:</label>
+                <label class="lang-en" style="display:none" for="languages">Languages:</label>
+                <textarea id="languages" name="languages" rows="3"></textarea>
+                <small class="lang-de">Format: Sprache (Niveau), z.B.: Deutsch (Muttersprache), Englisch (C1)</small>
+                <small class="lang-en" style="display:none">Format: Language (Level), e.g.: English (Native), German (C1)</small>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 class="lang-de">Zusätzliche Informationen</h2>
+            <h2 class="lang-en" style="display:none">Additional Information</h2>
+
+            <div class="form-group">
+                <label class="lang-de" for="motivation">Motivationsschreiben:</label>
+                <label class="lang-en" style="display:none" for="motivation">Motivation Letter:</label>
+                <textarea id="motivation" name="motivation" rows="5"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="lang-de" for="salary">Gehaltsvorstellung (jährlich brutto in €):</label>
+                <label class="lang-en" style="display:none" for="salary">Expected Salary (annual gross in €):</label>
+                <input type="number" id="salary" name="salary" min="0" step="1000">
+            </div>
+
+            <div class="form-group">
+                <label class="lang-de" for="start-date">Frühester Eintrittstermin:</label>
+                <label class="lang-en" style="display:none" for="start-date">Earliest Start Date:</label>
+                <input type="date" id="start-date" name="start_date">
+            </div>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="remote-work" name="remote_work">
+                <label class="lang-de" for="remote-work">Ich bin an Remote-Arbeit interessiert</label>
+                <label class="lang-en" style="display:none" for="remote-work">I am interested in remote work</label>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="relocation" name="relocation">
+                <label class="lang-de" for="relocation">Ich bin umzugsbereit</label>
+                <label class="lang-en" style="display:none" for="relocation">I am willing to relocate</label>
+            </div>
+        </div>
+
+        <button type="submit" class="lang-de">Bewerbung absenden</button>
+        <button type="submit" class="lang-en" style="display:none">Submit Application</button>
+    </form>
+
+    <script>
+        // Prosty przełącznik języków
+        document.querySelectorAll('.language-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const lang = this.getAttribute('data-lang');
+                document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                document.querySelectorAll('.lang-de, .lang-en').forEach(el => {
+                    el.style.display = 'none';
+                });
+                document.querySelectorAll(`.lang-${lang}`).forEach(el => {
+                    el.style.display = '';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

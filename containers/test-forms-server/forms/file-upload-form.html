@@ -1,0 +1,112 @@
+<!-- test-forms-server/forms/file-upload-form.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Formularz aplikacyjny z załącznikami</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .file-upload { border: 2px dashed #ddd; padding: 20px; text-align: center; margin-bottom: 10px; }
+        .file-upload input { display: none; }
+        .file-label { background: #f8f9fa; padding: 10px 15px; border-radius: 4px; cursor: pointer; display: inline-block; }
+        .file-info { margin-top: 10px; font-size: 14px; color: #555; }
+        button { background: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Formularz aplikacyjny z załącznikami</h1>
+    <form id="application-form" enctype="multipart/form-data">
+        <div class="form-section">
+            <h2>Dane podstawowe</h2>
+
+            <div class="form-group">
+                <label for="name">Imię i nazwisko:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="position">Stanowisko, o które się ubiegasz:</label>
+                <input type="text" id="position" name="position" required>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>Załączniki</h2>
+
+            <div class="form-group">
+                <label for="cv">CV (wymagane):</label>
+                <div class="file-upload">
+                    <label for="cv" class="file-label">Wybierz plik CV</label>
+                    <input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx" required>
+                    <div id="cv-info" class="file-info">Nie wybrano pliku</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="cover-letter">List motywacyjny (opcjonalnie):</label>
+                <div class="file-upload">
+                    <label for="cover-letter" class="file-label">Wybierz plik listu motywacyjnego</label>
+                    <input type="file" id="cover-letter" name="cover_letter" accept=".pdf,.doc,.docx">
+                    <div id="cover-letter-info" class="file-info">Nie wybrano pliku</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="portfolio">Portfolio / Przykłady prac (opcjonalnie):</label>
+                <div class="file-upload">
+                    <label for="portfolio" class="file-label">Wybierz plik portfolio</label>
+                    <input type="file" id="portfolio" name="portfolio" accept=".pdf,.zip,.rar">
+                    <div id="portfolio-info" class="file-info">Nie wybrano pliku</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>Dodatkowe informacje</h2>
+
+            <div class="form-group">
+                <label for="experience">Doświadczenie zawodowe:</label>
+                <textarea id="experience" name="experience" rows="4"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="linkedin">Profil LinkedIn (opcjonalnie):</label>
+                <input type="url" id="linkedin" name="linkedin" placeholder="https://www.linkedin.com/in/twój-profil">
+            </div>
+
+            <div class="form-group">
+                <label for="github">Profil GitHub (opcjonalnie):</label>
+                <input type="url" id="github" name="github" placeholder="https://github.com/twój-profil">
+            </div>
+        </div>
+
+        <button type="submit">Wyślij aplikację</button>
+    </form>
+
+    <script>
+        // Obsługa wyświetlania nazwy wybranego pliku
+        document.getElementById('cv').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : 'Nie wybrano pliku';
+            document.getElementById('cv-info').textContent = fileName;
+        });
+
+        document.getElementById('cover-letter').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : 'Nie wybrano pliku';
+            document.getElementById('cover-letter-info').textContent = fileName;
+        });
+
+        document.getElementById('portfolio').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : 'Nie wybrano pliku';
+            document.getElementById('portfolio-info').textContent = fileName;
+        });
+    </script>
+</body>
+</html>
