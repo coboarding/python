@@ -10,9 +10,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-# Pomocnicza funkcja wywołująca API AutoFormFiller
-def fill_form_with_autofiller(form_url, cv_path):
-    """Wywołuje API AutoFormFiller do wypełnienia formularza"""
+# Pomocnicza funkcja wywołująca API coBoarding
+def fill_form_with_coboarder(form_url, cv_path):
+    """Wywołuje API coBoarding do wypełnienia formularza"""
     try:
         response = requests.post(
             "http://llm-orchestrator:5000/fill-form",
@@ -24,7 +24,7 @@ def fill_form_with_autofiller(form_url, cv_path):
         )
         return response.json()
     except Exception as e:
-        print(f"Błąd podczas wywołania API AutoFormFiller: {str(e)}")
+        print(f"Błąd podczas wywołania API coBoarding: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 
@@ -38,7 +38,7 @@ def validate_form_filling(form_url, cv_data):
 
     driver = webdriver.Chrome(options=options)
     try:
-        # Otwórz URL po wypełnieniu przez AutoFormFiller
+        # Otwórz URL po wypełnieniu przez coBoarding
         driver.get(form_url)
 
         # Poczekaj na załadowanie formularza
@@ -46,7 +46,7 @@ def validate_form_filling(form_url, cv_data):
             EC.presence_of_element_located((By.TAG_NAME, "form"))
         )
 
-        # Poczekaj dodatkowe 2 sekundy na działanie AutoFormFiller
+        # Poczekaj dodatkowe 2 sekundy na działanie coBoarding
         time.sleep(2)
 
         # Sprawdź czy pola zostały wypełnione
@@ -68,7 +68,7 @@ def validate_form_filling(form_url, cv_data):
             "name": cv_data["personal_info"]["name"],
             "email": cv_data["personal_info"]["email"],
             "phone": cv_data["personal_info"]["phone"],
-            "message": "To jest wiadomość wygenerowana przez AutoFormFiller w celach testowych."
+            "message": "To jest wiadomość wygenerowana przez coBoarding w celach testowych."
         }
 
         # Sprawdź zgodność
@@ -125,12 +125,12 @@ def validate_form_filling(form_url, cv_data):
         form_url = "http://test-forms-server/forms/simple-form.html"
 
         print(f"Testowany formularz: {form_url}")
-        print("Rozpoczynam wypełnianie formularza za pomocą AutoFormFiller...")
+        print("Rozpoczynam wypełnianie formularza za pomocą coBoarding...")
 
-        # Wywołaj AutoFormFiller
-        result = fill_form_with_autofiller(form_url, "/volumes/test-data/test-cv.json")
+        # Wywołaj coBoarding
+        result = fill_form_with_coboarder(form_url, "/volumes/test-data/test-cv.json")
 
-        print(f"Wynik wywołania AutoFormFiller: {result['status']}")
+        print(f"Wynik wywołania coBoarding: {result['status']}")
 
         # Weryfikacja wypełnienia formularza
         print("Weryfikuję poprawność wypełnienia formularza...")

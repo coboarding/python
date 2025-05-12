@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 def fill_form_with_autofiller(form_url, cv_path, upload_files):
-    """Wywołuje API AutoFormFiller do wypełnienia formularza z uploadem plików"""
+    """Wywołuje API coBoarding do wypełnienia formularza z uploadem plików"""
     try:
         response = requests.post(
             "http://llm-orchestrator:5000/fill-form",
@@ -24,7 +24,7 @@ def fill_form_with_autofiller(form_url, cv_path, upload_files):
         )
         return response.json()
     except Exception as e:
-        print(f"Błąd podczas wywołania API AutoFormFiller: {str(e)}")
+        print(f"Błąd podczas wywołania API coBoarding: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 
@@ -48,10 +48,10 @@ def validate_file_upload_form(form_url, cv_data, upload_files):
         # Zrzut ekranu pustego formularza
         driver.save_screenshot("/volumes/test-results/file-upload-form-before.png")
 
-        # Wywołaj AutoFormFiller
-        print("Wywołuję AutoFormFiller dla formularza z uploadem plików...")
+        # Wywołaj coBoarding
+        print("Wywołuję coBoarding dla formularza z uploadem plików...")
         result = fill_form_with_autofiller(form_url, "/volumes/test-data/test-cv.json", upload_files)
-        print(f"Wynik wywołania AutoFormFiller: {result['status']}")
+        print(f"Wynik wywołania coBoarding: {result['status']}")
 
         # Poczekaj na wypełnienie formularza i upload plików
         time.sleep(5)

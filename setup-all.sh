@@ -1,7 +1,7 @@
 #!/bin/bash
 # setup-all.sh
 
-echo "AutoFormFiller - Automatyczne ustawienie wszystkiego"
+echo "coBoarding - Automatyczne ustawienie wszystkiego"
 
 # Wykryj system operacyjny
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -38,12 +38,12 @@ else
 fi
 
 # Zbuduj i uruchom wszystko jednym poleceniem
-echo "Uruchamiam system AutoFormFiller..."
+echo "Uruchamiam system coBoarding..."
 docker-compose up -d
 
 echo "System dostępny pod adresami:"
 echo "- Interfejs web: http://localhost:8082"
-echo "- Podgląd przeglądarki: http://localhost:8080"
+echo "- Podgląd przeglądarki: http://localhost:8082"
 echo "- Web terminal: http://localhost:8081"
 
-echo "Gotowe! Możesz teraz korzystać z AutoFormFiller."
+echo "Gotowe! Możesz teraz korzystać z coBoarding."

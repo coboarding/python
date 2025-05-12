@@ -26,6 +26,8 @@ storage
 test_storage
 pyproject.toml.bak
 .bak
+.py.bak
+setup.py.bak
 volumes/models/*
 .idea
 venv

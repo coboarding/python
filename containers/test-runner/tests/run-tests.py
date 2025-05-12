@@ -134,7 +134,7 @@ def run_test(test_script):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Runner testów AutoFormFiller")
+    parser = argparse.ArgumentParser(description="Runner testów coBoarding")
     parser.add_argument("--generate-only", action="store_true",
                         help="Tylko generuj dane testowe bez uruchamiania testów")
     args = parser.parse_args()
@@ -147,7 +147,7 @@ def main():
         print("\nWygenerowano dane testowe. Zakończono.")
         return
 
-    print("\n=== Uruchamianie testów AutoFormFiller ===\n")
+    print("\n=== Uruchamianie testów coBoarding ===\n")
 
     successful_tests = 0
     for test in TESTS:

@@ -88,7 +88,7 @@ def fill_form(url, cv_path=None):
         console.print("[blue]Wypełniam pola...[/blue]")
         time.sleep(1)
         console.print("[bold green]Formularz wypełniony![/bold green]")
-        console.print("[yellow]Podgląd dostępny na: http://localhost:8080[/yellow]")
+        console.print("[yellow]Podgląd dostępny na: http://localhost:8082[/yellow]")
     except Exception as e:
         console.print(f"[bold red]Błąd podczas wypełniania formularza:[/bold red] {str(e)}")
 
@@ -116,7 +116,7 @@ def batch_fill(file_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="AutoFormFiller - interfejs komend")
+    parser = argparse.ArgumentParser(description="coBoarding - interfejs komend")
     subparsers = parser.add_subparsers(dest="command", help="Komenda do wykonania")
 
     # Komenda list-models

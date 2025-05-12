@@ -7,11 +7,11 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}=== System testowy AutoFormFiller ====${NC}\n"
+echo -e "${GREEN}=== System testowy coBoarding ====${NC}\n"
 
 # Sprawdź, czy system jest uruchomiony
 if ! docker ps | grep -q "llm-orchestrator"; then
-    echo -e "${RED}System AutoFormFiller nie jest uruchomiony.${NC}"
+    echo -e "${RED}System coBoarding nie jest uruchomiony.${NC}"
     echo -e "Uruchom najpierw główny system poleceniem ./run.sh"
     exit 1
 fi

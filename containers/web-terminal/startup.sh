@@ -1,13 +1,13 @@
 #!/bin/bash
 # web-terminal/startup.sh
 
-# Funkcja inicjalizacji interfejsu AutoFormFiller
+# Funkcja inicjalizacji interfejsu coBoarding
 init_interface() {
     python3 -c "
 import pyfiglet
 from colorama import Fore, Style, init
 init()
-print(Fore.CYAN + pyfiglet.figlet_format('AutoFormFiller', font='slant') + Style.RESET_ALL)
+print(Fore.CYAN + pyfiglet.figlet_format('coBoarding', font='slant') + Style.RESET_ALL)
 print(Fore.GREEN + 'Terminal webowy gotowy. Wpisz \"help\" aby zobaczyć dostępne komendy.' + Style.RESET_ALL)
 "
 }

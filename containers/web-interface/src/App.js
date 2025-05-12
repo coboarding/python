@@ -110,7 +110,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>AutoFormFiller</h1>
+        <h1>coBoarding</h1>
         <p>System do automatycznego wypełniania formularzy rekrutacyjnych</p>
       </header>
       
@@ -169,7 +169,7 @@ function App() {
         <section className="preview-section">
           <h2>Podgląd przeglądarki</h2>
           <iframe 
-            src="http://localhost:8080" 
+            src="http://localhost:8082"
             title="Browser Preview" 
             className="browser-preview"
           ></iframe>

@@ -8,7 +8,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 echo -e "${BLUE}======================================${NC}"
-echo -e "${GREEN}   Inicjalizacja AutoFormFiller Pro  ${NC}"
+echo -e "${GREEN}   Inicjalizacja coBoarding Pro  ${NC}"
 echo -e "${BLUE}======================================${NC}"
 
 # Utworzenie struktury katalogów
@@ -33,14 +33,14 @@ if [ ! -f "volumes/models/phi-2-q4.gguf" ]; then
 fi
 
 # Uruchomienie systemu
-echo -e "${GREEN}Uruchamianie systemu AutoFormFiller Pro...${NC}"
+echo -e "${GREEN}Uruchamianie systemu coBoarding Pro...${NC}"
 docker-compose up -d
 
 # Informacja o dostępie
 echo -e "${GREEN}System został uruchomiony!${NC}"
 echo -e "${YELLOW}Terminal webowy dostępny pod adresem:${NC} http://localhost:8081"
-echo -e "${YELLOW}Podgląd przeglądarki dostępny pod adresem:${NC} http://localhost:8080"
+echo -e "${YELLOW}Podgląd przeglądarki dostępny pod adresem:${NC} http://localhost:8082"
 
 echo -e "${BLUE}======================================${NC}"
-echo -e "${GREEN}  AutoFormFiller Pro gotowy do użycia ${NC}"
+echo -e "${GREEN}  coBoarding Pro gotowy do użycia ${NC}"
 echo -e "${BLUE}======================================${NC}"

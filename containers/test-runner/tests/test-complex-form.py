@@ -13,7 +13,7 @@ from selenium.webdriver.support.ui import Select
 
 
 def fill_form_with_autofiller(form_url, cv_path):
-    """Wywołuje API AutoFormFiller do wypełnienia formularza"""
+    """Wywołuje API coBoarding do wypełnienia formularza"""
     try:
         response = requests.post(
             "http://llm-orchestrator:5000/fill-form",
@@ -25,7 +25,7 @@ def fill_form_with_autofiller(form_url, cv_path):
         )
         return response.json()
     except Exception as e:
-        print(f"Błąd podczas wywołania API AutoFormFiller: {str(e)}")
+        print(f"Błąd podczas wywołania API coBoarding: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 
@@ -55,15 +55,15 @@ def validate_form_filling(form_url, cv_data):
         language_btn.click()
         time.sleep(1)  # Poczekaj na zmianę języka
 
-        # Poczekaj dodatkowe 3 sekundy na działanie AutoFormFiller - złożony formularz
+        # Poczekaj dodatkowe 3 sekundy na działanie coBoarding - złożony formularz
         time.sleep(3)
 
         # Zrób zrzut ekranu przed testami
         driver.save_screenshot(f"/volumes/test-results/complex-form-{language}-before.png")
 
-        # Wypełnij formularz za pomocą AutoFormFiller
+        # Wypełnij formularz za pomocą coBoarding
         result = fill_form_with_autofiller(form_url, "/volumes/test-data/test-cv.json")
-        print(f"Wynik wywołania AutoFormFiller: {result['status']}")
+        print(f"Wynik wywołania coBoarding: {result['status']}")
 
         # Poczekaj na wypełnienie formularza
         time.sleep(5)

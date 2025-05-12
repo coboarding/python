@@ -1,8 +1,8 @@
-# AutoFormFiller - Podsumowanie rozwiązania i prompty implementacyjne
+# coBoarding - Podsumowanie rozwiązania i prompty implementacyjne
 
 ## Podsumowanie rozwiązania
 
-AutoFormFiller to kompleksowy system do automatycznego wypełniania formularzy rekrutacyjnych, charakteryzujący się następującymi cechami:
+coBoarding to kompleksowy system do automatycznego wypełniania formularzy rekrutacyjnych, charakteryzujący się następującymi cechami:
 
 1. **Architektura kontenerowa** - oparty na Docker, z separacją funkcjonalności w modułach
 2. **Lokalne przetwarzanie danych** - 100% prywatności dzięki lokalnym modelom LLM
@@ -21,7 +21,7 @@ System oferuje przewagę nad konkurencyjnymi rozwiązaniami (Manus AI, rtrvr.ai)
 ### Prompt 1: Architektura kontenerowa Docker
 
 ```
-Zaimplementuj podstawową architekturę kontenerową AutoFormFiller w Docker.
+Zaimplementuj podstawową architekturę kontenerową coBoarding w Docker.
 System powinien składać się z następujących kontenerów:
 1. browser-service - zawierający przeglądarki Chrome/Firefox z Selenium
 2. llm-orchestrator - z wykrywaniem sprzętu i zarządzaniem modelami LLM
@@ -43,7 +43,7 @@ System powinien automatycznie wykrywać dostępne zasoby (GPU/CPU) i dobierać o
 ### Prompt 2: System wykrywania i zarządzania modelami LLM
 
 ```
-Zaimplementuj system wykrywania sprzętu i zarządzania modelami LLM dla AutoFormFiller.
+Zaimplementuj system wykrywania sprzętu i zarządzania modelami LLM dla coBoarding.
 System powinien:
 1. Wykrywać dostępność GPU i CUDA
 2. Mierzyć dostępną pamięć RAM
@@ -68,7 +68,7 @@ Zaimplementuj endpointy API do analizy formularzy, tłumaczenia i generowania pi
 ### Prompt 3: Interfejs webowy z rozpoznawaniem mowy
 
 ```
-Zaimplementuj interfejs webowy dla AutoFormFiller z obsługą poleceń głosowych.
+Zaimplementuj interfejs webowy dla coBoarding z obsługą poleceń głosowych.
 Interfejs powinien:
 1. Być zbudowany w React z intuicyjnym UI
 2. Wspierać HTTPS (nawet z certyfikatem self-signed dla rozwoju)
@@ -143,7 +143,7 @@ Zadbaj o walidację i obsługę błędów.
 ### Prompt 6: Środowisko testowe i walidacja
 
 ```
-Zaimplementuj kompletne środowisko testowe dla AutoFormFiller.
+Zaimplementuj kompletne środowisko testowe dla coBoarding.
 Środowisko powinno zawierać:
 1. Serwer formularzy testowych z różnymi typami formularzy (prosty, złożony, wielojęzyczny, z uploadem)
 2. System automatycznych testów weryfikujących wszystkie funkcjonalności
@@ -167,7 +167,7 @@ sprawdzające współpracę między kontenerami.
 ### Prompt 7: Integracja z menedżerami haseł i bezpieczeństwo
 
 ```
-Zaimplementuj integrację AutoFormFiller z menedżerami haseł i zabezpieczenia.
+Zaimplementuj integrację coBoarding z menedżerami haseł i zabezpieczenia.
 System powinien:
 1. Integrować się z Bitwarden i PassBolt przez ich API
 2. Bezpiecznie przechowywać i używać dane logowania
@@ -191,7 +191,7 @@ Zaimplementuj również mechanizm czyszczenia wrażliwych danych po zakończeniu
 ### Prompt 8: Skrypty wdrożeniowe i dokumentacja
 
 ```
-Przygotuj kompletny zestaw skryptów wdrożeniowych i dokumentację dla AutoFormFiller.
+Przygotuj kompletny zestaw skryptów wdrożeniowych i dokumentację dla coBoarding.
 Pakiet powinien zawierać:
 1. Skrypt one-click setup automatyzujący cały proces instalacji
 2. Skrypty diagnostyczne do weryfikacji środowiska
@@ -245,5 +245,5 @@ Aby zweryfikować poprawność implementacji, wykonaj następujące scenariusze 
 4. Sprawdź czy wygenerowany pipeline zawiera wszystkie potrzebne kroki
 5. Uruchom wygenerowany pipeline i zweryfikuj jego działanie
 
-Ta lista promptów i pytań weryfikacyjnych powinna zapewnić kompleksową implementację systemu AutoFormFiller i jego walidację.
+Ta lista promptów i pytań weryfikacyjnych powinna zapewnić kompleksową implementację systemu coBoarding i jego walidację.
 Każdy aspekt systemu jest pokryty odpowiednimi testami i mechanizmami weryfikacji, co gwarantuje wysoką jakość końcowego rozwiązania.

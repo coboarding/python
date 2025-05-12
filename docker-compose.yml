@@ -43,7 +43,7 @@ services:
       - RUN_XTERM=no
       - RUN_FLUXBOX=yes
     ports:
-      - "8080:8080"  # noVNC web interface
+      - "8082:8082"  # noVNC web interface
     depends_on:
       - browser-service
 

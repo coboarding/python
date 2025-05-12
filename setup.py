@@ -1,0 +1,9 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="coboarding",
+    version="0.1.3",
+    description="Automated Development Environment",
+    packages=find_packages(),
+    python_requires=">=3.8",
+)
