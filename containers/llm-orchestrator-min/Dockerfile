@@ -13,7 +13,11 @@ WORKDIR /app
 
 # Ustawienie zmiennych środowiskowych dla pip
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    # Domyślny port API - można nadpisać przy uruchomieniu kontenera
+    API_PORT=5000 \
+    # Domyślne ustawienia optymalizacji
+    USE_INT8=true
 
 # Utworzenie katalogów dla aplikacji
 RUN mkdir -p /app/models /app/config /app/model-configs /app/data
@@ -48,8 +52,8 @@ else \n\
   echo "Model TinyLlama już istnieje, pomijanie pobierania." \n\
 fi' > /app/download_model.sh && chmod +x /app/download_model.sh
 
-# Ekspozycja portu API
-EXPOSE 5000
+# Ekspozycja portu API - domyślnie 5000, ale można zmienić przez zmienną środowiskową API_PORT
+EXPOSE ${API_PORT}
 
 # Uruchomienie API z wcześniejszym sprawdzeniem modelu
 CMD ["/bin/bash", "-c", "/app/download_model.sh && python -u api.py"]

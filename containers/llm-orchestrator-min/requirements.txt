@@ -10,3 +10,4 @@ requests==2.31.0
 python-dotenv==1.0.0
 psutil==5.9.5
 bitsandbytes==0.40.2
+protobuf==3.20.3

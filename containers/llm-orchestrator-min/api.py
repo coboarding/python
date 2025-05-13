@@ -11,9 +11,12 @@ MODEL_PATH = "/app/models/tinyllama"
 # Konfiguracja optymalizacji
 USE_INT8 = os.environ.get('USE_INT8', 'true').lower() == 'true'
 DEVICE = "cpu"
+# Konfiguracja portu API z możliwością zmiany przez zmienną środowiskową
+API_PORT = int(os.environ.get('API_PORT', '5000'))
 
 print("Ładowanie modelu TinyLlama-1.1B...")
 print(f"Optymalizacje: USE_INT8={USE_INT8}, DEVICE={DEVICE}")
+print(f"API będzie dostępne na porcie: {API_PORT}")
 
 # Ładowanie tokenizera
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
@@ -91,4 +94,4 @@ def health():
 
 if __name__ == '__main__':
     # Używamy threaded=False dla mniejszego zużycia pamięci w przypadku małych modeli
-    app.run(host='0.0.0.0', port=5000, threaded=False)
+    app.run(host='0.0.0.0', port=API_PORT, threaded=False)
