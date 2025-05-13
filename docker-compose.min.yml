@@ -4,7 +4,7 @@ services:
   llm-orchestrator-min:
     build:
       context: ./containers/llm-orchestrator-min
-      args:
+      args: {}
       cache_from:
         - llm-orchestrator-min:latest
     container_name: llm-orchestrator-min
@@ -34,7 +34,7 @@ services:
   browser-service:
     build:
       context: ./containers/browser-service
-      args:
+      args: {}
       cache_from:
         - browser-service:latest
     container_name: browser-service
@@ -60,7 +60,7 @@ services:
   novnc:
     build:
       context: ./containers/novnc
-      args:
+      args: {}
       cache_from:
         - novnc:latest
     container_name: novnc

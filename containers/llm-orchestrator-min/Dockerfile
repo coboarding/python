@@ -11,27 +11,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Ustawienie zmiennych środowiskowych dla pip, aby zoptymalizować cache
-ENV PIP_NO_CACHE_DIR=0 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_CACHE_DIR=/root/.cache/pip
+# Ustawienie zmiennych środowiskowych dla pip
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Utworzenie katalogów dla cache
-RUN mkdir -p /root/.cache/pip /root/.cache/pip/wheels /app/models /app/config /app/model-configs /app/data
+# Utworzenie katalogów dla aplikacji
+RUN mkdir -p /app/models /app/config /app/model-configs /app/data
 
 # Kopiowanie tylko pliku requirements.txt najpierw, aby lepiej wykorzystać cache
-COPY requirements.txt .
+COPY containers/llm-orchestrator-min/requirements.txt .
 
-# Instalacja zależności z wykorzystaniem cache
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir --cache-dir=/root/.cache/pip -r requirements.txt
+# Instalacja zależności bez użycia BuildKit
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Kopiowanie pozostałych plików aplikacji
-COPY api.py ./
-COPY model-configs/ ./model-configs/
-COPY data/ ./data/
+COPY containers/llm-orchestrator-min/api.py ./
+COPY containers/llm-orchestrator-min/model-configs/ ./model-configs/
+COPY containers/llm-orchestrator-min/data/ ./data/
 
 # Pobieranie małego modelu LLM (TinyLlama-1.1B) tylko jeśli nie istnieje
 # Używamy wolumenu, aby zachować model między uruchomieniami
