@@ -163,10 +163,10 @@ log "INFO" "- Zoptymalizowane cacheowanie paczek"
 log "INFO" "- Kwantyzacja int8 dla mniejszego zużycia pamięci"
 log "INFO" "- Limity zasobów dla kontenerów"
 
-# Włączenie BuildKit dla szybszego budowania
-export DOCKER_BUILDKIT=1
-export COMPOSE_DOCKER_CLI_BUILD=1
-log "INFO" "Włączono BuildKit dla szybszego budowania"
+# Wyłączenie BuildKit, ponieważ może nie być dostępny
+export DOCKER_BUILDKIT=0
+export COMPOSE_DOCKER_CLI_BUILD=0
+log "INFO" "Wyłączono BuildKit, ponieważ może nie być dostępny w systemie"
 
 # Sprawdzenie czy Docker jest zainstalowany
 if ! command -v docker &> /dev/null; then
@@ -270,6 +270,11 @@ log "INFO" "Istniejące kontenery zatrzymane."
 log "INFO" "Czyszczenie nieużywanych zasobów Docker..."
 docker system prune -f --volumes 2>/dev/null
 log "INFO" "Nieużywane zasoby Docker wyczyszczone."
+
+# Usunięcie argumentów BUILDKIT z docker-compose.min.yml
+log "INFO" "Usuwanie argumentów BuildKit z docker-compose.min.yml..."
+sed -i '/BUILDKIT_INLINE_CACHE/d' docker-compose.min.yml
+log "SUCCESS" "Argumenty BuildKit usunięte."
 
 # Testowanie komponentów przed uruchomieniem
 log "INFO" "Testowanie komponentów przed uruchomieniem..."
@@ -470,5 +475,5 @@ fi
 log "INFO" "Aby zatrzymać, użyj: docker-compose -f docker-compose.min.yml down"
 log "INFO" "Informacja o cache: Paczki Pythona są przechowywane w wolumenie Docker 'coboarding-pip-cache'"
 log "INFO" "Dzięki temu kolejne uruchomienia będą znacznie szybsze."
-log "INFO" "Optymalizacje: Kwantyzacja int8, limity pamięci, BuildKit, cacheowanie paczek"
+log "INFO" "Optymalizacje: Kwantyzacja int8, limity pamięci, cacheowanie paczek"
 log "INFO" "Logi zostały zapisane w pliku: ./coboarding-min.log"
