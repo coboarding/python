@@ -27,6 +27,8 @@ services:
     build:
       context: ./containers/browser-service
     container_name: browser-service
+    ports:
+      - "5001:5001"
     volumes:
       - ./volumes/cv:/app/cv:ro
       - ./volumes/config:/app/config

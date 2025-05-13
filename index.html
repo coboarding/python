@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>coBoarding – Dokumentacja i test Mermaid</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Mermaid.js CDN -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    pre { background: #f4f4f4; padding: 1em; }
+  </style>
+</head>
+<body>
+  <h1>coBoarding – Test renderowania Mermaid na GitHub Pages</h1>
+  <h2>Diagram Mermaid (codeblock):</h2>
+  <pre><code class="language-mermaid">flowchart TD
+    U[Użytkownik] -->|Web UI| WI(Web Interface)
+    WI -->|Sterowanie| BS(Browser Service)
+    WI -->|Komunikacja| LLM(LLM Orchestrator)
+    BS -->|noVNC| NV(noVNC)
+    LLM -->|API| BS
+    WI -->|Integracja| PW(Bitwarden/PassBolt)
+</code></pre>
+
+  <h2>Diagram Mermaid (div):</h2>
+  <div class="mermaid">
+flowchart TD
+    U[Użytkownik] -->|Web UI| WI(Web Interface)
+    WI -->|Sterowanie| BS(Browser Service)
+    WI -->|Komunikacja| LLM(LLM Orchestrator)
+    BS -->|noVNC| NV(noVNC)
+    LLM -->|API| BS
+    WI -->|Integracja| PW(Bitwarden/PassBolt)
+  </div>
+
+  <script>
+  // Automatyczna konwersja codeblocks do div.mermaid
+  document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('pre > code.language-mermaid').forEach(function(block) {
+      const parent = block.parentElement;
+      const mermaidDiv = document.createElement('div');
+      mermaidDiv.className = 'mermaid';
+      mermaidDiv.textContent = block.textContent;
+      parent.parentElement.replaceChild(mermaidDiv, parent);
+    });
+  });
+  </script>
+</body>
+</html>
