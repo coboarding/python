@@ -28,7 +28,7 @@ FROM python:3.9-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     USE_INT8=true \
-    API_PORT=5000
+    MODEL_SERVICE_PORT=5000
 
 # Instalacja podstawowych zależności systemowych
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -48,38 +48,21 @@ RUN pip install --no-index --find-links=/app/wheels -r requirements.txt && \
     rm -rf /app/wheels
 
 # Tworzenie katalogów dla aplikacji
-RUN mkdir -p /app/models/tinyllama /app/scripts
+RUN mkdir -p /app/models/tinyllama
 
 # Kopiowanie kodu aplikacji
-COPY api.py ./
+COPY model_service.py ./
 
 # Skrypt do pobierania modelu
-RUN echo '#!/bin/bash \n\
-if [ ! -f /app/models/tinyllama/pytorch_model.bin ]; then \n\
-  echo "Pobieranie modelu TinyLlama..." \n\
-  cd /app/models/tinyllama && \
-  wget -q https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/resolve/main/tokenizer.model && \
-  wget -q https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/resolve/main/tokenizer_config.json && \
-  wget -q https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/resolve/main/config.json && \
-  wget -q https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/resolve/main/pytorch_model.bin \n\
-  echo "Model pobrany pomyślnie." \n\
-else \n\
-  echo "Model TinyLlama już istnieje, pomijanie pobierania." \n\
-fi' > /app/download_model.sh && chmod +x /app/download_model.sh
-
-# Kopiowanie skryptów (pojedynczo, aby uniknąć problemów z nieistniejącymi plikami)
-COPY scripts/*.sh /app/scripts/
-COPY scripts/*.py /app/scripts/
-
-# Nadanie uprawnień wykonywania dla skryptów
-RUN find /app/scripts -name "*.sh" -exec chmod +x {} \;
+COPY download_model.sh /app/
+RUN chmod +x /app/download_model.sh
 
 # Skrypt healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:${API_PORT}/api/health || exit 1
+  CMD curl -f http://localhost:${MODEL_SERVICE_PORT}/health || exit 1
 
 # Ekspozycja portu API
-EXPOSE ${API_PORT}
+EXPOSE ${MODEL_SERVICE_PORT}
 
 # Uruchomienie aplikacji
-CMD ["/bin/bash", "-c", "/app/download_model.sh && python -u api.py"]
+CMD ["/bin/bash", "-c", "/app/download_model.sh && python -u model_service.py"]
