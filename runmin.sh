@@ -151,6 +151,43 @@ open_browser() {
   return 0
 }
 
+# Funkcja do sprawdzania i tworzenia wolumenów Docker
+check_and_create_volumes() {
+  log "INFO" "Sprawdzanie wolumenów Docker..."
+  
+  # Lista wolumenów do sprawdzenia
+  local volumes=("coboarding-pip-cache" "coboarding-wheel-cache" "coboarding-models-cache" "coboarding-chrome-cache")
+  
+  for volume in "${volumes[@]}"; do
+    if ! docker volume inspect "$volume" &>/dev/null; then
+      log "INFO" "Tworzenie wolumenu $volume..."
+      docker volume create "$volume"
+      log "SUCCESS" "Wolumen $volume utworzony."
+    else
+      # Sprawdzenie rozmiaru wolumenu
+      local volume_path=$(docker volume inspect "$volume" -f '{{ .Mountpoint }}')
+      local volume_size=$(du -sh "$volume_path" 2>/dev/null | cut -f1)
+      log "INFO" "Wolumen $volume już istnieje. Rozmiar: $volume_size"
+    fi
+  done
+}
+
+# Funkcja do zapisywania obrazów Docker do cache
+save_docker_images() {
+  log "INFO" "Zapisywanie obrazów Docker do cache..."
+  
+  # Lista obrazów do zapisania
+  local images=("llm-orchestrator-min" "browser-service" "novnc")
+  
+  for image in "${images[@]}"; do
+    if docker images | grep -q "$image"; then
+      log "INFO" "Zapisywanie obrazu $image do cache..."
+      docker tag "$image" "$image:latest"
+      log "SUCCESS" "Obraz $image zapisany do cache."
+    fi
+  done
+}
+
 # Inicjalizacja pliku logów
 > ./coboarding-min.log
 log "INFO" "=== Uruchamianie coBoarding - Minimalna Wersja ==="
@@ -225,18 +262,8 @@ log "INFO" "Tworzenie katalogów dla wolumenów..."
 mkdir -p ./volumes/models ./volumes/config ./volumes/recordings
 log "SUCCESS" "Katalogi dla wolumenów utworzone."
 
-# Sprawdzenie czy wolumen pip-cache istnieje
-if ! docker volume inspect coboarding-pip-cache &>/dev/null; then
-    log "INFO" "Tworzenie wolumenu pip-cache dla optymalizacji cacheowania..."
-    docker volume create coboarding-pip-cache
-    log "SUCCESS" "Wolumen pip-cache utworzony."
-else
-    log "INFO" "Wolumen pip-cache już istnieje."
-    # Sprawdzenie rozmiaru wolumenu
-    volume_path=$(docker volume inspect coboarding-pip-cache -f '{{ .Mountpoint }}')
-    volume_size=$(du -sh "$volume_path" 2>/dev/null | cut -f1)
-    log "INFO" "Rozmiar wolumenu pip-cache: $volume_size"
-fi
+# Sprawdzenie i utworzenie wolumenów Docker
+check_and_create_volumes
 
 # Sprawdzenie dostępnej pamięci
 MEM_TOTAL=$(free -g | awk '/^Mem:/{print $2}')
@@ -252,24 +279,35 @@ if [ "$MEM_TOTAL" -lt 4 ]; then
 fi
 
 # Sprawdzenie czy model jest dostępny
-if [ ! -d "./volumes/models/tinyllama" ]; then
-    log "WARNING" "Model TinyLlama nie jest dostępny. Zostanie pobrany podczas pierwszego uruchomienia."
-    log "WARNING" "Pierwsze uruchomienie może potrwać dłużej ze względu na pobieranie modelu."
-else
+if [ -d "./volumes/models/tinyllama" ] && [ -f "./volumes/models/tinyllama/pytorch_model.bin" ]; then
     log "INFO" "Model TinyLlama jest dostępny lokalnie."
     model_size=$(du -sh ./volumes/models/tinyllama 2>/dev/null | cut -f1)
     log "INFO" "Rozmiar modelu: $model_size"
+else
+    log "WARNING" "Model TinyLlama nie jest dostępny lokalnie. Zostanie pobrany podczas pierwszego uruchomienia."
+    log "WARNING" "Pierwsze uruchomienie może potrwać dłużej ze względu na pobieranie modelu."
 fi
+
+# Sprawdzenie czy obrazy Docker są już zbudowane
+log "INFO" "Sprawdzanie czy obrazy Docker są już zbudowane..."
+REBUILD_NEEDED=false
+
+for image in "llm-orchestrator-min" "browser-service" "novnc"; do
+    if ! docker images | grep -q "$image"; then
+        log "INFO" "Obraz $image nie istnieje, będzie budowany."
+        REBUILD_NEEDED=true
+    else
+        log "INFO" "Obraz $image już istnieje."
+        image_id=$(docker images -q "$image")
+        image_created=$(docker inspect -f '{{ .Created }}' "$image_id")
+        log "INFO" "Obraz $image utworzony: $image_created"
+    fi
+done
 
 # Zatrzymanie istniejących kontenerów, jeśli istnieją
 log "INFO" "Zatrzymywanie istniejących kontenerów, jeśli istnieją..."
 docker-compose -f docker-compose.min.yml down 2>/dev/null
 log "INFO" "Istniejące kontenery zatrzymane."
-
-# Czyszczenie nieużywanych obrazów i wolumenów dla oszczędności miejsca
-log "INFO" "Czyszczenie nieużywanych zasobów Docker..."
-docker system prune -f --volumes 2>/dev/null
-log "INFO" "Nieużywane zasoby Docker wyczyszczone."
 
 # Usunięcie argumentów BUILDKIT z docker-compose.min.yml
 log "INFO" "Usuwanie argumentów BuildKit z docker-compose.min.yml..."
@@ -314,14 +352,20 @@ fi
 
 # Budowanie i uruchamianie kontenerów
 log "INFO" "Budowanie i uruchamianie kontenerów..."
-log "INFO" "Pierwsze uruchomienie może potrwać dłużej, kolejne będą szybsze dzięki cache."
 
-# Uruchamianie z obsługą błędów
-docker-compose -f docker-compose.min.yml up --build -d
-BUILD_RESULT=$?
+if [ "$REBUILD_NEEDED" = true ]; then
+    log "INFO" "Budowanie obrazów Docker od nowa. To może potrwać kilka minut..."
+    log "INFO" "Używanie cache dla przyspieszenia procesu budowania."
+    docker-compose -f docker-compose.min.yml build --pull --no-cache
+    BUILD_RESULT=$?
+else
+    log "INFO" "Używanie istniejących obrazów Docker. Uruchamianie kontenerów..."
+    docker-compose -f docker-compose.min.yml up -d
+    BUILD_RESULT=$?
+fi
 
 if [ $BUILD_RESULT -ne 0 ]; then
-    log "ERROR" "Wystąpił błąd podczas budowania kontenerów."
+    log "ERROR" "Wystąpił błąd podczas budowania/uruchamiania kontenerów."
     log "INFO" "Próba uruchomienia kontenerów pojedynczo..."
     
     # Próba uruchomienia każdego kontenera osobno
@@ -348,6 +392,9 @@ if [ $BUILD_RESULT -ne 0 ]; then
 else
     log "SUCCESS" "Wszystkie kontenery uruchomione pomyślnie."
 fi
+
+# Zapisanie obrazów Docker do cache
+save_docker_images
 
 # Sprawdzenie statusu kontenerów
 log "INFO" "Sprawdzanie statusu kontenerów..."
@@ -505,7 +552,11 @@ else
 fi
 
 log "INFO" "Aby zatrzymać, użyj: ./stop.sh"
-log "INFO" "Informacja o cache: Paczki Pythona są przechowywane w wolumenie Docker 'coboarding-pip-cache'"
+log "INFO" "Informacja o cache: Paczki Pythona są przechowywane w wolumenach Docker:"
+log "INFO" "- coboarding-pip-cache: główny cache pip"
+log "INFO" "- coboarding-wheel-cache: skompilowane pakiety Python"
+log "INFO" "- coboarding-models-cache: pobrane modele LLM"
+log "INFO" "- coboarding-chrome-cache: cache przeglądarki Chrome"
 log "INFO" "Dzięki temu kolejne uruchomienia będą znacznie szybsze."
-log "INFO" "Optymalizacje: Kwantyzacja int8, limity pamięci, cacheowanie paczek"
+log "INFO" "Optymalizacje: Kwantyzacja int8, limity pamięci, cacheowanie paczek, zapisywanie obrazów Docker"
 log "INFO" "Logi zostały zapisane w pliku: ./coboarding-min.log"

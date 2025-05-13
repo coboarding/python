@@ -1,5 +1,15 @@
 FROM debian:bullseye-slim
 
+# Ustawienie zmiennych środowiskowych dla pip, aby zoptymalizować cache
+ENV PIP_NO_CACHE_DIR=0 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_CACHE_DIR=/root/.cache/pip
+
+# Utworzenie katalogów dla cache
+RUN mkdir -p /root/.cache/pip /root/.cache/pip/wheels
+
 # Instalacja zależności
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
@@ -16,13 +26,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl \
     && rm -rf /var/lib/apt/lists/*
 
-# Klonowanie repozytorium noVNC
-RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/novnc \
-    && git clone --depth 1 https://github.com/novnc/websockify /opt/novnc/utils/websockify
+# Klonowanie repozytorium noVNC z określoną wersją dla lepszego cache
+RUN git clone --depth 1 --branch v1.3.0 https://github.com/novnc/noVNC.git /opt/novnc \
+    && git clone --depth 1 --branch v0.10.0 https://github.com/novnc/websockify /opt/novnc/utils/websockify
 
 # Tworzenie dowiązania symbolicznego do vnc.html
 RUN ln -sf /opt/novnc/vnc.html /opt/novnc/index.html
-
 
 # Kopiowanie konfiguracji Nginx z HTTPS
 COPY nginx.conf /etc/nginx/conf.d/default.conf

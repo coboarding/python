@@ -3,6 +3,17 @@ FROM debian:bullseye-slim
 # Temporarily redirect interactive dialogs during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Ustawienie zmiennych środowiskowych dla pip, aby zoptymalizować cache
+ENV PIP_NO_CACHE_DIR=0 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_CACHE_DIR=/root/.cache/pip \
+    DISPLAY=:99
+
+# Utworzenie katalogów dla cache
+RUN mkdir -p /root/.cache/pip /root/.cache/pip/wheels /root/.cache/google-chrome
+
 # Install dependencies
 RUN apt-get update && apt-get install -y xvfb
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -31,7 +42,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     unzip \
     && rm -rf /var/lib/apt/lists/*
-VOLUME /root/.cache/pip
 
 # Install Chrome (new way to add the key)
 RUN set -eux; \
@@ -58,7 +68,6 @@ RUN echo '[DEBUG] Installing Firefox...'; \
     && rm -rf /var/lib/apt/lists/*; \
     echo '[DEBUG] Firefox installation completed.'
 
-# Install ChromeDriver with better fallback mechanism
 # Install ChromeDriver with improved fallback mechanism
 RUN set -eux; \
     echo '[DEBUG] Installing ChromeDriver...'; \
@@ -138,10 +147,12 @@ RUN echo '[DEBUG] Setting execution permissions for .sh scripts...'; \
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN echo '[DEBUG] Copied supervisord.conf configuration file.'
 
-# Install Python dependencies
+# Copy requirements.txt first for better caching
 COPY requirements.txt /app/
-VOLUME /root/.cache/pip
-RUN echo '[DEBUG] Installing Python dependencies...'; \
+
+# Install Python dependencies with cache
+RUN --mount=type=cache,target=/root/.cache/pip \
+    echo '[DEBUG] Installing Python dependencies...'; \
     pip3 install --cache-dir=/root/.cache/pip -r /app/requirements.txt; \
     echo '[DEBUG] Python dependencies installation completed.'
 
@@ -153,10 +164,6 @@ RUN echo '[DEBUG] Configuring TigerVNC...'; \
     echo "startfluxbox &" >> /root/.vnc/xstartup && \
     chmod +x /root/.vnc/xstartup; \
     echo '[DEBUG] TigerVNC configuration completed.'
-
-# Set environment variables
-ENV DISPLAY=:99
-ENV PYTHONUNBUFFERED=1
 
 # Expose VNC port
 EXPOSE 5900
