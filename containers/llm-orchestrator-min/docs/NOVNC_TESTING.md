@@ -109,23 +109,103 @@ http://localhost:8080
 
 Pozwala on na monitorowanie statusu mikrousług i ruchu sieciowego.
 
+## Monitorowanie systemu
+
+Aby monitorować stan usług i postęp ładowania modelu LLM, możesz użyć skryptu `monitor.sh`:
+
+```bash
+./monitor.sh
+```
+
+Skrypt ten dostarcza informacje o:
+- Statusie wszystkich kontenerów
+- Postępie ładowania modelu LLM
+- Dostępności API
+- Zużyciu zasobów (CPU, pamięć)
+- Logach z kontenerów
+
+### Opcje monitorowania
+
+Skrypt oferuje różne tryby działania:
+
+```bash
+# Monitorowanie w czasie rzeczywistym (aktualizacja co 5 sekund)
+./monitor.sh --live
+
+# Wyświetlenie tylko podsumowania statusu
+./monitor.sh --summary
+
+# Monitorowanie procesu ładowania modelu
+./monitor.sh --model
+
+# Monitorowanie statusu API
+./monitor.sh --api
+
+# Informacje o sieci i połączeniach między kontenerami
+./monitor.sh --network
+
+# Status środowiska testowego (noVNC i przeglądarka)
+./monitor.sh --novnc
+
+# Statystyki zużycia zasobów przez kontenery
+./monitor.sh --containers
+
+# Wyświetlenie wszystkich dostępnych opcji
+./monitor.sh --help
+```
+
+Użyj opcji `--model`, aby śledzić postęp ładowania modelu LLM i sprawdzić, czy komunikat "Service Unavailable" jest spowodowany tym, że model jest jeszcze w trakcie ładowania.
+
 ## Rozwiązywanie problemów
 
 ### Problem z uruchomieniem kontenerów
 
-Jeśli występują problemy z uruchomieniem kontenerów za pomocą `run.sh`, spróbuj użyć skryptu `reset_and_run.sh`, który całkowicie resetuje środowisko Docker i uruchamia kontenery ręcznie.
+Jeśli występują problemy z uruchomieniem kontenerów za pomocą `run.sh`, użyj alternatywnego skryptu:
 
-### Błąd "ContainerConfig"
+```bash
+./reset_and_run.sh
+```
 
-Jeśli pojawia się błąd `KeyError: 'ContainerConfig'`, jest to problem z kompatybilnością między wersjami Docker i docker-compose. Użyj skryptu `reset_and_run.sh`, który omija ten problem.
+Ten skrypt całkowicie resetuje środowisko Docker i uruchamia kontenery ręcznie, co pomaga rozwiązać problemy z kompatybilnością Docker/docker-compose.
 
-### API zwraca "Service Unavailable"
+### Problem z ładowaniem modelu
 
-Po uruchomieniu systemu, model LLM potrzebuje czasu na załadowanie (zwykle kilka minut). W tym czasie API może zwracać "Service Unavailable". Poczekaj kilka minut i spróbuj ponownie.
+Jeśli w logach kontenera `llm-model-service` pojawia się błąd związany z ładowaniem modelu (np. `OSError: Unable to load weights from pytorch checkpoint file`), użyj skryptu naprawczego:
 
-### Problemy z pamięcią
+```bash
+sudo ./fix_model_service.sh
+```
 
-Model LLM wymaga minimum 4GB RAM. Jeśli kontener model-service ulega awarii, sprawdź dostępną pamięć i w razie potrzeby zwiększ limit w pliku `docker-compose.yml`.
+Ten skrypt:
+1. Zatrzymuje i usuwa kontener `llm-model-service`
+2. Pobiera wszystkie niezbędne pliki modelu TinyLlama z HuggingFace
+3. Ustawia odpowiednie uprawnienia dla katalogu `models`
+4. Uruchamia ponownie kontener `llm-model-service`
+
+Po uruchomieniu skryptu, możesz monitorować postęp ładowania modelu za pomocą:
+
+```bash
+./monitor.sh --model --live
+```
+
+### Problem z dostępem do API
+
+Jeśli podczas testów otrzymujesz odpowiedź "Service Unavailable", może to oznaczać, że:
+
+1. Model LLM jest jeszcze w trakcie ładowania (może to potrwać kilka minut)
+2. Kontener `llm-model-service` nie działa poprawnie
+
+Aby sprawdzić status modelu i API, użyj:
+
+```bash
+./monitor.sh --summary
+```
+
+Jeśli status modelu jest "Nieznany" lub "Ładowanie", poczekaj kilka minut. Jeśli problem nie ustępuje, użyj skryptu naprawczego:
+
+```bash
+sudo ./fix_model_service.sh
+```
 
 ## Struktura katalogów
 

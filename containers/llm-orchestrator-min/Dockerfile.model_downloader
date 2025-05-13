@@ -1,0 +1,9 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir transformers torch
+
+COPY download_model.py /app/
+
+CMD ["python", "download_model.py", "TinyLlama/TinyLlama-1.1B-Chat-v1.0", "/models/tinyllama"]

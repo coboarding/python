@@ -50,7 +50,22 @@ Po uruchomieniu systemu:
    file:///config/test_llm.html
    ```
 
-### 3. Zatrzymanie systemu
+### 3. Monitorowanie systemu
+
+Aby monitorować stan usług i postęp ładowania modelu LLM:
+
+```bash
+./monitor.sh
+```
+
+Dostępne opcje monitorowania:
+- `./monitor.sh --live` - monitorowanie w czasie rzeczywistym (aktualizacja co 5 sekund)
+- `./monitor.sh --summary` - wyświetlenie tylko podsumowania statusu
+- `./monitor.sh --model` - monitorowanie procesu ładowania modelu
+- `./monitor.sh --api` - monitorowanie statusu API
+- `./monitor.sh --help` - wyświetlenie wszystkich dostępnych opcji
+
+### 4. Zatrzymanie systemu
 
 ```bash
 ./stop.sh
@@ -65,6 +80,16 @@ Jeśli występują problemy z uruchomieniem kontenerów za pomocą `run.sh`, uż
 ```
 
 Ten skrypt całkowicie resetuje środowisko Docker i uruchamia kontenery ręcznie, co pomaga rozwiązać problemy z kompatybilnością Docker/docker-compose.
+
+### Problem z ładowaniem modelu
+
+Jeśli model-service nie działa lub API zwraca "Service Unavailable", użyj skryptu naprawczego:
+
+```bash
+sudo ./fix_model_service.sh
+```
+
+Ten skrypt automatycznie pobiera niezbędne pliki modelu i ponownie uruchamia kontener model-service.
 
 ## Dokumentacja
 
@@ -82,6 +107,8 @@ llm-orchestrator-min/
 ├── run.sh                       # Skrypt do standardowego uruchomienia
 ├── reset_and_run.sh             # Skrypt do resetowania i ręcznego uruchomienia
 ├── stop.sh                      # Skrypt do zatrzymania systemu
+├── monitor.sh                   # Skrypt do monitorowania statusu systemu
+├── fix_model_service.sh         # Skrypt do naprawy problemów z modelem
 ├── setup_novnc_test.sh          # Skrypt do konfiguracji środowiska testowego
 ├── microservices/               # Katalog z mikrousługami
 │   ├── api-gateway/             # Brama API (Traefik)
