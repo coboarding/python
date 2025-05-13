@@ -1,7 +1,10 @@
-# monitor/app.py - placeholder
+from flask import Flask, jsonify
 
-def main():
-    print("Monitor app placeholder. Implement your monitoring logic here.")
+app = Flask(__name__)
+
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
-    main()
+    app.run(host="0.0.0.0", port=8082)

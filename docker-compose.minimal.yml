@@ -23,19 +23,6 @@ services:
     networks:
       - autoformfiller-network
 
-  # Dodaj prosty serwis testowy do przykładowych zapytań
-  test-client:
-    image: python:3.9-slim
-    container_name: test-client
-    volumes:
-      - ./test-examples:/test-examples
-    working_dir: /test-examples
-    command: ["python", "run_examples.py"]
-    networks:
-      - autoformfiller-network
-    depends_on:
-      - llm-orchestrator
-
 networks:
   autoformfiller-network:
     driver: bridge

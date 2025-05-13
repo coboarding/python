@@ -379,3 +379,12 @@ main() {
 
 # Run main function with arguments
 main "$@"
+
+# --- TEST INFRASTRUCTURE ---
+SCRIPT_DIR="$(dirname "$0")"
+if [ -f "$SCRIPT_DIR/scripts/test_infra.sh" ]; then
+  echo "\n=== Sprawdzanie infrastruktury po starcie kontenerów ==="
+  bash "$SCRIPT_DIR/scripts/test_infra.sh"
+else
+  echo "test_infra.sh nie znaleziony, pomiń test infrastruktury."
+fi
