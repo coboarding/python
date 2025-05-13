@@ -56,8 +56,68 @@ coBoarding automatyzuje proces aplikowania na portale pracy:
 5. **Integruje się z menedżerami haseł** (Bitwarden/PassBolt)
 6. **Generuje pipeline** do wypełnienia formularza
 7. **Testuje i wizualizuje** proces przez noVNC
+8. **Automatycznie pobiera tokeny z emaila** (np. 2FA) przez endpoint `/get-email-token`
+9. **Wysyła podsumowania i załączniki na email** po złożeniu formularza (`/fill-form`)
+10. **Loguje statusy zgłoszeń do bazy SQLite** i umożliwia rozbudowę usług podsumowań
 
 System działa na architekturze mikroserwisowej (browser-service, llm-orchestrator, web-interface, novnc), komunikujących się przez sieć Docker.
+
+---
+
+## Nowe funkcje (2025):
+
+### Pobieranie tokenów z emaila
+- Endpoint `/get-email-token` umożliwia automatyczne pobieranie kodów (np. 2FA) z wybranej skrzynki email (IMAP, regex, wsparcie Gmail/MS/PRV)
+- Przykład użycia:
+  ```json
+  POST /get-email-token
+  {
+    "imap_server": "imap.gmail.com",
+    "email_user": "twoj_email@gmail.com",
+    "email_pass": "app_password",
+    "search_subject": "Twój kod logowania",
+    "token_regex": "\\b\\d{6}\\b"
+  }
+  ```
+
+### Wysyłanie podsumowań i załączników na email
+- Endpoint `/fill-form` przyjmuje opcjonalne pole `notify_email` – jeśli podane, po złożeniu formularza wysyła podsumowanie oraz załącznik (np. CV) na ten adres
+- Wysyłka obsługiwana przez `send_email_utils.py` (SMTP, TLS, załączniki)
+
+### Baza statusów zgłoszeń
+- Wszystkie zgłoszenia/formularze są logowane do bazy SQLite (`form_status.db` lub ścieżka z `FORMS_DB_PATH`)
+- Dane: URL formularza, email do powiadomień, kod odpowiedzi, szczegóły, timestamp
+- Możliwość rozbudowy o osobną usługę raportowania/przeglądania statusów
+
+### Konfiguracja środowiska przez pliki .env
+- W katalogu głównym znajdziesz szablony:
+  - `.env.gmail` – Gmail
+  - `.env.ms` – Microsoft/Outlook
+  - `.env.prv` – prywatny serwer
+- Skopiuj wybrany plik do `.env` i uzupełnij swoimi danymi:
+  ```env
+  SMTP_SERVER=smtp.gmail.com
+  SMTP_PORT=587
+  SMTP_USER=twoj_email@gmail.com
+  SMTP_PASS=twoje_haslo
+  EMAIL_FROM=twoj_email@gmail.com
+  IMAP_SERVER=imap.gmail.com
+  IMAP_USER=twoj_email@gmail.com
+  IMAP_PASS=twoje_haslo
+  FORMS_DB_PATH=form_status.db
+  ```
+- **Uwaga!** Nie commituj swoich danych dostępowych do repozytorium!
+
+### Pliki narzędziowe
+- `send_email_utils.py` – obsługa SMTP, wysyłka emaili z załącznikami
+- `email_utils.py` – pobieranie tokenów z emaila (IMAP, regex)
+
+### Wskazówki bezpieczeństwa
+- Przechowuj dane dostępowe wyłącznie w `.env` (nie commituj do repo!)
+- W przypadku testów na publicznych serwerach używaj kont tymczasowych
+- Możesz zmienić nazwę bazy statusów przez `FORMS_DB_PATH`
+
+---
 
 ## Przykłady zastosowań
 - Automatyczne wypełnianie formularzy rekrutacyjnych (LinkedIn, Pracuj.pl, StepStone, Indeed)
