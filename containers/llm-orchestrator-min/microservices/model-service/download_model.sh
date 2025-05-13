@@ -1,35 +1,38 @@
 #!/bin/bash
 # Skrypt do pobierania modelu TinyLlama
 
-MODEL_DIR="/app/models/tinyllama"
-MODEL_URL_BASE="https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/resolve/main"
-MODEL_FILES=(
-  "tokenizer.model"
-  "tokenizer_config.json"
-  "config.json"
-  "pytorch_model.bin"
-)
+MODEL_DIR="${1:-/app/models/tinyllama}"
+CACHE_DIR="${2:-/app/.cache/models/tinyllama}"
 
-# Tworzenie katalogu dla modelu
-mkdir -p $MODEL_DIR
+# Tworzenie katalogów
+mkdir -p "${MODEL_DIR}"
+mkdir -p "${CACHE_DIR}"
 
-# Sprawdzenie, czy model już istnieje
-if [ ! -f "$MODEL_DIR/pytorch_model.bin" ]; then
-  echo "Pobieranie modelu TinyLlama..."
-  
-  # Pobieranie plików modelu
-  for file in "${MODEL_FILES[@]}"; do
-    echo "Pobieranie $file..."
-    wget -q "$MODEL_URL_BASE/$file" -O "$MODEL_DIR/$file"
+# Funkcja do pobierania pliku, jeśli nie istnieje w cache
+download_if_not_exists() {
+    local filename=$1
+    local url=$2
+    local target_dir=$3
+    local cache_dir=$4
     
-    # Sprawdzenie, czy pobieranie się powiodło
-    if [ $? -ne 0 ]; then
-      echo "Błąd podczas pobierania $file!"
-      exit 1
+    # Sprawdzenie, czy plik istnieje w cache
+    if [ -f "${cache_dir}/${filename}" ]; then
+        echo "Używam ${filename} z cache..."
+        cp "${cache_dir}/${filename}" "${target_dir}/${filename}"
+    else
+        echo "Pobieram ${filename}..."
+        wget -q "${url}/${filename}" -O "${target_dir}/${filename}"
+        # Kopiowanie do cache
+        cp "${target_dir}/${filename}" "${cache_dir}/${filename}"
     fi
-  done
-  
-  echo "Model pobrany pomyślnie."
-else
-  echo "Model TinyLlama już istnieje, pomijanie pobierania."
-fi
+}
+
+# Pobieranie plików modelu
+MODEL_URL="https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/resolve/main"
+FILES=("tokenizer.model" "tokenizer_config.json" "config.json" "pytorch_model.bin")
+
+for file in "${FILES[@]}"; do
+    download_if_not_exists "${file}" "${MODEL_URL}" "${MODEL_DIR}" "${CACHE_DIR}"
+done
+
+echo "Model pobrany pomyślnie."

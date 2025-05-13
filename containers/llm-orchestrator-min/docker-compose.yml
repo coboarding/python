@@ -18,14 +18,18 @@ services:
 
   # Model Service
   model-service:
-    build: ./microservices/model-service
+    build: 
+      context: ./microservices/model-service
+      dockerfile: Dockerfile
     container_name: llm-model-service
     environment:
       - MODEL_PATH=/app/models/tinyllama
       - USE_INT8=true
       - MODEL_SERVICE_PORT=5000
     volumes:
-      - model-data:/app/models
+      - ./models:/app/models
+      - ./.cache/pip:/root/.cache/pip
+      - ./.cache/models:/app/.cache/models
     networks:
       - llm-network
     restart: unless-stopped
@@ -34,26 +38,6 @@ services:
         limits:
           memory: 4G
 
-  # Cache Service (można dodać w przyszłości)
-  # cache-service:
-  #   build: ./microservices/cache-service
-  #   container_name: llm-cache-service
-  #   networks:
-  #     - llm-network
-  #   restart: unless-stopped
-
-  # Monitoring Service (można dodać w przyszłości)
-  # monitoring-service:
-  #   build: ./microservices/monitoring-service
-  #   container_name: llm-monitoring-service
-  #   networks:
-  #     - llm-network
-  #   restart: unless-stopped
-
 networks:
   llm-network:
     driver: bridge
-
-volumes:
-  model-data:
-    driver: local

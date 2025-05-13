@@ -48,14 +48,15 @@ RUN pip install --no-index --find-links=/app/wheels -r requirements.txt && \
     rm -rf /app/wheels
 
 # Tworzenie katalogów dla aplikacji
-RUN mkdir -p /app/models/tinyllama
+RUN mkdir -p /app/models/tinyllama /app/.cache/models/tinyllama
 
 # Kopiowanie kodu aplikacji
 COPY model_service.py ./
+COPY download_model.sh ./
 
-# Skrypt do pobierania modelu
-COPY download_model.sh /app/
-RUN chmod +x /app/download_model.sh
+# Kopiowanie skryptów
+COPY scripts/ /app/scripts/
+RUN chmod +x /app/scripts/*.sh /app/download_model.sh
 
 # Skrypt healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
@@ -65,4 +66,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 EXPOSE ${MODEL_SERVICE_PORT}
 
 # Uruchomienie aplikacji
-CMD ["/bin/bash", "-c", "/app/download_model.sh && python -u model_service.py"]
+CMD ["/bin/bash", "-c", "./download_model.sh /app/models/tinyllama /app/.cache/models/tinyllama && python -u model_service.py"]

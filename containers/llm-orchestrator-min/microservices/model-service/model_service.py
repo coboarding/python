@@ -1,139 +1,126 @@
-#!/usr/bin/env python3
-"""
-Model Service - Mikrousługa odpowiedzialna za obsługę modelu LLM
-"""
 import os
-import json
-import logging
-from typing import Dict, Any, Optional
-
-from flask import Flask, request, jsonify
 import torch
+from flask import Flask, request, jsonify
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-# Konfiguracja logowania
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger("model-service")
-
-# Inicjalizacja Flask
 app = Flask(__name__)
 
-# Konfiguracja z zmiennych środowiskowych
-MODEL_PATH = os.environ.get("MODEL_PATH", "/app/models/tinyllama")
-USE_INT8 = os.environ.get("USE_INT8", "true").lower() == "true"
-PORT = int(os.environ.get("MODEL_SERVICE_PORT", 5000))
-MAX_LENGTH = int(os.environ.get("MAX_LENGTH", 512))
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
-# Globalne zmienne dla modelu i tokenizera
-model = None
-tokenizer = None
-
-
-def load_model():
-    """Ładuje model i tokenizer."""
-    global model, tokenizer
-    
-    logger.info(f"Ładowanie modelu z {MODEL_PATH}...")
-    logger.info(f"Optymalizacje: USE_INT8={USE_INT8}, DEVICE={DEVICE}")
-    
-    # Ładowanie tokenizera
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-    
-    # Ładowanie modelu z optymalizacjami
-    if USE_INT8:
-        model = AutoModelForCausalLM.from_pretrained(
-            MODEL_PATH,
-            device_map=DEVICE,
-            load_in_8bit=True,
-            torch_dtype=torch.float16
-        )
-    else:
-        model = AutoModelForCausalLM.from_pretrained(
-            MODEL_PATH,
-            device_map=DEVICE,
-            torch_dtype=torch.float16
-        )
-    
-    logger.info("Model załadowany pomyślnie")
-
-
-@app.route('/health', methods=['GET'])
+@app.route("/health", methods=["GET"])
 def health_check():
-    """Endpoint do sprawdzania stanu usługi."""
-    if model is None or tokenizer is None:
-        return jsonify({"status": "error", "message": "Model not loaded"}), 503
-    
-    return jsonify({"status": "ok", "model": MODEL_PATH}), 200
+    return jsonify({"status": "ok"}), 200
 
+# Ścieżka do modelu
+MODEL_PATH = "/app/models/tinyllama"
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    """Endpoint do generowania tekstu."""
-    if model is None or tokenizer is None:
-        return jsonify({"error": "Model not loaded"}), 503
-    
-    # Pobieranie danych z żądania
-    data = request.json
-    if not data or "prompt" not in data:
-        return jsonify({"error": "No prompt provided"}), 400
-    
-    prompt = data["prompt"]
-    max_length = data.get("max_length", MAX_LENGTH)
-    temperature = data.get("temperature", 0.7)
-    
+# Konfiguracja optymalizacji
+USE_INT8 = os.environ.get('USE_INT8', 'true').lower() == 'true'
+DEVICE = "cpu"
+# Konfiguracja portu API z możliwością zmiany przez zmienną środowiskową
+API_PORT = int(os.environ.get('API_PORT', '5000'))
+
+print("Ładowanie modelu TinyLlama-1.1B...")
+print(f"Optymalizacje: USE_INT8={USE_INT8}, DEVICE={DEVICE}")
+print(f"API będzie dostępne na porcie: {API_PORT}")
+
+# Ładowanie tokenizera
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+
+# Ładowanie modelu z optymalizacjami
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_PATH,
+    torch_dtype=torch.float32,  # Używamy float32 dla CPU
+    low_cpu_mem_usage=True,
+    load_in_8bit=USE_INT8,  # Kwantyzacja int8 dla mniejszego zużycia pamięci
+    device_map=DEVICE
+)
+
+# Optymalizacja pamięci po załadowaniu modelu
+torch.cuda.empty_cache() if torch.cuda.is_available() else None
+print("Model załadowany i zoptymalizowany!")
+
+@app.route('/api/generate', methods=['POST'])
+def generate():
     try:
-        # Tokenizacja i generowanie
-        inputs = tokenizer(prompt, return_tensors="pt").to(DEVICE)
+        data = request.json
+        prompt = data.get('prompt', '')
+        max_length = data.get('max_length', 256)
+        temperature = data.get('temperature', 0.7)
+        top_p = data.get('top_p', 0.9)
         
-        # Generowanie tekstu
-        with torch.no_grad():
+        # Formatowanie promptu dla modelu czatowego
+        chat_prompt = f"<human>: {prompt}\n<assistant>:"
+        
+        # Generowanie odpowiedzi z optymalizacją pamięci
+        with torch.no_grad():  # Wyłączamy gradient dla oszczędności pamięci
+            inputs = tokenizer(chat_prompt, return_tensors="pt")
             outputs = model.generate(
-                **inputs,
+                inputs.input_ids,
                 max_length=max_length,
                 temperature=temperature,
-                do_sample=True,
-                pad_token_id=tokenizer.eos_token_id
+                top_p=top_p,
+                do_sample=True
             )
         
-        # Dekodowanie wyniku
-        generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        # Dekodowanie odpowiedzi
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
         
-        # Zwracanie wyniku
+        # Wyodrębnienie odpowiedzi asystenta
+        assistant_response = response.split("<assistant>:")[-1].strip()
+        
+        # Zwolnienie pamięci
+        del inputs, outputs
+        torch.cuda.empty_cache() if torch.cuda.is_available() else None
+        
         return jsonify({
-            "generated_text": generated_text,
-            "prompt": prompt
-        }), 200
-    
+            "response": assistant_response,
+            "success": True
+        })
     except Exception as e:
-        logger.error(f"Error during prediction: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "error": str(e),
+            "success": False
+        }), 500
 
-
-@app.route('/model-info', methods=['GET'])
-def model_info():
-    """Endpoint do pobierania informacji o modelu."""
-    if model is None:
-        return jsonify({"error": "Model not loaded"}), 503
-    
-    info = {
-        "model_path": MODEL_PATH,
-        "device": DEVICE,
-        "int8_enabled": USE_INT8,
-        "max_length": MAX_LENGTH,
-        "parameters": sum(p.numel() for p in model.parameters())
+@app.route('/api/health', methods=['GET'])
+def health():
+    # Dodajemy informacje o zużyciu pamięci
+    import psutil
+    memory_info = {
+        "total_memory_gb": round(psutil.virtual_memory().total / (1024**3), 2),
+        "used_memory_gb": round(psutil.virtual_memory().used / (1024**3), 2),
+        "percent_used": psutil.virtual_memory().percent
     }
     
-    return jsonify(info), 200
-
+    return jsonify({
+        "status": "ok",
+        "memory_info": memory_info
+    })
 
 if __name__ == '__main__':
-    # Ładowanie modelu przy starcie
-    load_model()
-    
-    # Uruchomienie serwera Flask
-    logger.info(f"Uruchamianie serwisu modelu na porcie {PORT}...")
-    app.run(host='0.0.0.0', port=PORT)
+    # Używamy threaded=False dla mniejszego zużycia pamięci w przypadku małych modeli
+    app.run(host='0.0.0.0', port=API_PORT, threaded=False)
+
+# Dodanie metryk Prometheus
+from prometheus_client import Counter, Histogram, generate_latest
+import time
+
+# Metryki
+REQUESTS = Counter('model_requests_total', 'Total number of requests')
+PREDICTION_TIME = Histogram('model_prediction_seconds', 'Time spent processing prediction')
+
+@app.route('/metrics', methods=['GET'])
+def metrics():
+    return generate_latest()
+
+# Modyfikacja głównej funkcji predykcji, aby zbierać metryki
+@app.before_request
+def before_request():
+    request.start_time = time.time()
+
+@app.after_request
+def after_request(response):
+    if request.path != '/metrics' and request.path != '/health':
+        REQUESTS.inc()
+        if hasattr(request, 'start_time'):
+            PREDICTION_TIME.observe(time.time() - request.start_time)
+    return response

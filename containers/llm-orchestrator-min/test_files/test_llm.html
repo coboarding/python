@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test LLM API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        textarea {
+            height: 120px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            resize: vertical;
+        }
+        button {
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #response {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 120px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+        }
+        .status {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test LLM API</h1>
+    <div class="container">
+        <label for="prompt"><strong>Wprowadź prompt:</strong></label>
+        <textarea id="prompt">Opowiedz mi krótką historię o kocie.</textarea>
+        
+        <div class="controls">
+            <div class="slider-container">
+                <label for="temperature" class="slider-label">
+                    <span>Temperatura:</span>
+                    <span id="temp-value">0.7</span>
+                </label>
+                <input type="range" id="temperature" min="0.1" max="1.5" step="0.1" value="0.7" oninput="updateSliderValue('temp-value', this.value)">
+            </div>
+            
+            <div class="slider-container">
+                <label for="max-length" class="slider-label">
+                    <span>Maks. długość:</span>
+                    <span id="length-value">256</span>
+                </label>
+                <input type="range" id="max-length" min="64" max="512" step="32" value="256" oninput="updateSliderValue('length-value', this.value)">
+            </div>
+        </div>
+        
+        <button id="generate-btn" onclick="generateText()">Generuj tekst</button>
+        
+        <div>
+            <h3>Odpowiedź:</h3>
+            <div id="response">Tutaj pojawi się odpowiedź...</div>
+            <p class="status" id="status"></p>
+        </div>
+    </div>
+
+    <script>
+        function updateSliderValue(elementId, value) {
+            document.getElementById(elementId).textContent = value;
+        }
+        
+        async function generateText() {
+            const prompt = document.getElementById('prompt').value;
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const maxLength = parseInt(document.getElementById('max-length').value);
+            const responseDiv = document.getElementById('response');
+            const statusDiv = document.getElementById('status');
+            const generateBtn = document.getElementById('generate-btn');
+            
+            if (!prompt.trim()) {
+                alert('Proszę wprowadzić prompt!');
+                return;
+            }
+            
+            responseDiv.textContent = "Generowanie odpowiedzi...";
+            statusDiv.textContent = "Łączenie z API...";
+            generateBtn.disabled = true;
+            
+            try {
+                const startTime = new Date();
+                statusDiv.textContent = "Wysyłanie zapytania...";
+                
+                const response = await fetch('http://llm-api-gateway/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        max_length: maxLength,
+                        temperature: temperature
+                    })
+                });
+                
+                statusDiv.textContent = "Przetwarzanie odpowiedzi...";
+                const data = await response.json();
+                const endTime = new Date();
+                const timeTaken = (endTime - startTime) / 1000;
+                
+                if (data.success) {
+                    responseDiv.textContent = data.response;
+                    statusDiv.textContent = `Odpowiedź wygenerowana w ${timeTaken.toFixed(2)} sekund.`;
+                } else {
+                    responseDiv.textContent = "Błąd: " + data.error;
+                    statusDiv.textContent = "Wystąpił błąd podczas generowania odpowiedzi.";
+                }
+            } catch (error) {
+                responseDiv.textContent = "Błąd połączenia: " + error.message;
+                statusDiv.textContent = "Nie można połączyć się z API.";
+            } finally {
+                generateBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

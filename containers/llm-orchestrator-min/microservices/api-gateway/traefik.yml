@@ -1,32 +1,24 @@
-## Traefik Static Configuration
-
-# Konfiguracja globalna
+# Konfiguracja Traefik dla API Gateway
 global:
   checkNewVersion: true
   sendAnonymousUsage: false
 
-# Konfiguracja logowania
-log:
-  level: INFO
-
-# Konfiguracja API
 api:
-  insecure: true
   dashboard: true
+  insecure: true
 
-# Konfiguracja dostawców
+entryPoints:
+  web:
+    address: ":80"
+  traefik:
+    address: ":8080"
+
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
-    watch: true
   file:
     filename: /etc/traefik/dynamic_conf.yml
     watch: true
 
-# Konfiguracja punktów wejścia
-entryPoints:
-  web:
-    address: ":80"
-  dashboard:
-    address: ":8080"
+accessLog: {}
