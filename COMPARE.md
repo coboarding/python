@@ -1,26 +1,26 @@
 # Porównanie rozwiązań do automatycznego wypełniania formularzy na rynku
 
-| Cecha | coBoarding (Nasze rozwiązanie) | Manus AI | rtrvr.ai | Magical | Auto-Form-Filler (RohitSinghDev) |
-|-------|-------------------------------------|----------|----------|---------|----------------------------------|
-| **Model wdrożenia** | Self-hosted Docker | SaaS / cloud-based | Rozszerzenie Chrome | Rozszerzenie Chrome | Self-hosted Python |
-| **Koszt** | Darmowy (open source) | Od 39$/mies. za 3900 kredytów | 10$/mies. (~10,000 akcji) | Od 10$/mies. | Darmowy (open source) |
-| **Wymagania systemowe** | Docker, min. 8GB RAM (więcej dla lepszych modeli LLM) | Tylko przeglądarka | Tylko przeglądarka | Tylko przeglądarka | Python, MongoDB |
-| **Przetwarzanie danych** | 100% lokalne | W chmurze | W przeglądarce | W przeglądarce | Lokalne |
-| **Wielojęzyczność** | ✅ PL/DE/EN z auto-detekcją | ✅ Wiele języków | ⚠️ Ograniczone | ⚠️ Ograniczone | ❌ Brak |
-| **Interfejs użytkownika** | Web UI + noVNC + sterowanie głosowe | Webowa aplikacja | Prosty UI w Chrome | Intuicyjny UI w Chrome | Wiersz poleceń / API |
-| **Modele AI** | Lokalne LLM, wybór modeli wg. dostępnych zasobów | GPT-4, Claude | Wbudowane AI | Wbudowane AI (API) | Brak (rule-based) |
-| **Obsługa uploadów plików** | ✅ Pełna obsługa | ✅ Pełna obsługa | ⚠️ Ograniczona | ⚠️ Ograniczona | ❌ Brak |
-| **Wypełnianie złożonych formularzy** | ✅ Zaawansowana analiza i mapowanie | ✅ Zaawansowana analiza | ⚠️ Podstawowa analiza | ⚠️ Podstawowa analiza | ⚠️ Bardzo podstawowa |
-| **Integracja z hasłami** | ✅ Bitwarden, PassBolt | ✅ Różne menedżery | ✅ Integracja z Chrome | ✅ Integracja z Chrome | ❌ Brak |
-| **Nagrywanie sesji** | ✅ Wbudowane | ✅ Wbudowane | ❌ Brak | ❌ Brak | ❌ Brak |
-| **Automatyczna generacja pipeline'ów** | ✅ Z użyciem LLM | ✅ Z użyciem GPT-4 | ❌ Brak | ❌ Brak | ❌ Brak |
-| **Sterowanie głosowe** | ✅ Web Speech API | ⚠️ Ograniczone | ❌ Brak | ❌ Brak | ❌ Brak |
-| **Własne środowisko testowe** | ✅ Rozbudowane z różnymi typami formularzy | ❌ Brak | ❌ Brak | ❌ Brak | ❌ Brak |
-| **Skalowalność** | ⚠️ Ograniczona do zasobów lokalnych/serwera | ✅ Chmurowa | ⚠️ Ograniczona do przeglądarki | ⚠️ Ograniczona do przeglądarki | ❌ Niska |
-| **Łatwość instalacji** | ⚠️ Wymaga konfiguracji Docker | ✅ Bardzo łatwa | ✅ Bardzo łatwa | ✅ Bardzo łatwa | ⚠️ Wymaga konfiguracji Python |
-| **Prywatność danych** | ✅ Pełna (wszystko lokalnie) | ❌ Dane w chmurze | ⚠️ W przeglądarce | ⚠️ W przeglądarce | ✅ Pełna (lokalna baza) |
-| **Dokumentacja** | ✅ Kompletna | ✅ Profesjonalna | ⚠️ Podstawowa | ✅ Dobra | ⚠️ Ograniczona |
-| **Wsparcie** | ⚠️ Społeczność | ✅ Komercyjne, SLA | ✅ Komercyjne | ✅ Komercyjne | ⚠️ Open source |
+| Cecha | coBoarding (Nasze rozwiązanie) | Manus AI | rtrvr.ai | Magical |
+|-------|-------------------------------------|----------|----------|---------|
+| **Model wdrożenia** | Self-hosted Docker | SaaS / cloud-based | Rozszerzenie Chrome | Rozszerzenie Chrome |
+| **Koszt** | Darmowy (open source) | Od 39$/mies. za 3900 kredytów | 10$/mies. (~10,000 akcji) | Od 10$/mies. |
+| **Wymagania systemowe** | Docker, min. 8GB RAM (więcej dla lepszych modeli LLM) | Tylko przeglądarka | Tylko przeglądarka | Tylko przeglądarka |
+| **Przetwarzanie danych** | 100% lokalne | W chmurze | W przeglądarce | W przeglądarce |
+| **Wielojęzyczność** | ✅ PL/DE/EN z auto-detekcją | ✅ Wiele języków | ⚠️ Ograniczone | ⚠️ Ograniczone |
+| **Interfejs użytkownika** | Web UI + noVNC + sterowanie głosowe | Webowa aplikacja | Prosty UI w Chrome | Intuicyjny UI w Chrome |
+| **Modele AI** | Lokalne LLM, wybór modeli wg. dostępnych zasobów | GPT-4, Claude | Wbudowane AI | Wbudowane AI (API) |
+| **Obsługa uploadów plików** | ✅ Pełna obsługa | ✅ Pełna obsługa | ⚠️ Ograniczona | ⚠️ Ograniczona |
+| **Wypełnianie złożonych formularzy** | ✅ Zaawansowana analiza i mapowanie | ✅ Zaawansowana analiza | ⚠️ Podstawowa analiza | ⚠️ Podstawowa analiza |
+| **Integracja z hasłami** | ✅ Bitwarden, PassBolt | ✅ Różne menedżery | ✅ Integracja z Chrome | ✅ Integracja z Chrome |
+| **Nagrywanie sesji** | ✅ Wbudowane | ✅ Wbudowane | ❌ Brak | ❌ Brak |
+| **Automatyczna generacja pipeline'ów** | ✅ Z użyciem LLM | ✅ Z użyciem GPT-4 | ❌ Brak | ❌ Brak |
+| **Sterowanie głosowe** | ✅ Web Speech API | ⚠️ Ograniczone | ❌ Brak | ❌ Brak |
+| **Własne środowisko testowe** | ✅ Rozbudowane z różnymi typami formularzy | ❌ Brak | ❌ Brak | ❌ Brak |
+| **Skalowalność** | ⚠️ Ograniczona do zasobów lokalnych/serwera | ✅ Chmurowa | ⚠️ Ograniczona do przeglądarki | ⚠️ Ograniczona do przeglądarki |
+| **Łatwość instalacji** | ⚠️ Wymaga konfiguracji Docker | ✅ Bardzo łatwa | ✅ Bardzo łatwa | ✅ Bardzo łatwa |
+| **Prywatność danych** | ✅ Pełna (wszystko lokalnie) | ❌ Dane w chmurze | ⚠️ W przeglądarce | ⚠️ W przeglądarce |
+| **Dokumentacja** | ✅ Kompletna | ✅ Profesjonalna | ⚠️ Podstawowa | ✅ Dobra |
+| **Wsparcie** | ⚠️ Społeczność | ✅ Komercyjne, SLA | ✅ Komercyjne | ✅ Komercyjne |
 
 ## Kluczowe przewagi coBoarding
 
