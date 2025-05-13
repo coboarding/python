@@ -5,7 +5,6 @@ services:
     build:
       context: ./containers/llm-orchestrator-min
       args:
-        BUILDKIT_INLINE_CACHE: 1
       cache_from:
         - llm-orchestrator-min:latest
     container_name: llm-orchestrator-min
@@ -36,7 +35,6 @@ services:
     build:
       context: ./containers/browser-service
       args:
-        BUILDKIT_INLINE_CACHE: 1
       cache_from:
         - browser-service:latest
     container_name: browser-service
@@ -63,7 +61,6 @@ services:
     build:
       context: ./containers/novnc
       args:
-        BUILDKIT_INLINE_CACHE: 1
       cache_from:
         - novnc:latest
     container_name: novnc
