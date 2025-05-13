@@ -27,6 +27,11 @@ for SERVICE in "${SERVICES[@]}"; do
   fi
 done
 
+log "Zatrzymywanie środowiska minimalnego (docker-compose.min.yml)..."
+if [ -f "docker-compose.min.yml" ]; then
+  docker-compose -f docker-compose.min.yml down || warn "Nie udało się zatrzymać środowiska minimalnego."
+fi
+
 log "Zatrzymywanie wszystkich usług docker-compose..."
 docker compose down || docker-compose down || warn "docker-compose down nie powiodło się (brak pliku lub usługi)"
 
@@ -38,7 +43,19 @@ else
   warn "Brak kontenerów powiązanych z projektem coboarding."
 fi
 
+# Usuwanie kontenerów z wersji minimalnej
+MIN_CONTAINERS="llm-orchestrator-min browser-service novnc"
+for CONTAINER in $MIN_CONTAINERS; do
+  if docker ps -a --filter "name=$CONTAINER" -q | grep -q .; then
+    log "Usuwanie kontenera $CONTAINER..."
+    docker rm -f $CONTAINER || warn "Nie udało się usunąć kontenera $CONTAINER."
+  fi
+done
+
 log "Usuwanie nieużywanych sieci docker..."
 docker network prune -f || warn "Nie udało się wyczyścić sieci docker."
+
+log "Usuwanie nieużywanych wolumenów docker..."
+docker volume prune -f || warn "Nie udało się wyczyścić wolumenów docker."
 
 log "Wszystkie usługi zatrzymane i kontenery usunięte."

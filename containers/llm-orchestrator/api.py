@@ -74,6 +74,7 @@ def index():
 
 app = Flask(__name__)
 
+@app.route('/api/health', methods=['GET'])
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({"status": "ok"}), 200
