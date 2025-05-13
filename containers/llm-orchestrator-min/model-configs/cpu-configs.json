@@ -1,0 +1,6 @@
+{
+  "default": {
+    "threads": 2,
+    "batch_size": 1
+  }
+}
