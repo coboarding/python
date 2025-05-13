@@ -162,7 +162,8 @@ start_monitor() {
     sleep 2
     if ! ps -p $MONITOR_PID >/dev/null 2>&1; then
       echo -e "${RED}Nie udało się uruchomić monitora!${NC}"
-      echo -e "${YELLOW}Sprawdź logi w pliku monitor.log${NC}"
+      echo -e "${YELLOW}Wyciąg z logu monitora:${NC}"
+      tail -20 monitor.log 2>/dev/null || echo -e "${RED}Brak pliku monitor.log${NC}"
       return 1
     fi
   fi
@@ -170,7 +171,8 @@ start_monitor() {
   # 4. Ostateczna weryfikacja czy monitor faktycznie działa
   if ! curl -s -f http://localhost:${MONITOR_PORT:-8082}/health >/dev/null 2>&1; then
     echo -e "${RED}Monitor nie odpowiada na port ${MONITOR_PORT:-8082}!${NC}"
-    echo -e "${YELLOW}Sprawdź logi w pliku monitor.log${NC}"
+    echo -e "${YELLOW}Wyciąg z logu monitora:${NC}"
+    tail -20 monitor.log 2>/dev/null || echo -e "${RED}Brak pliku monitor.log${NC}"
     return 1
   fi
 
@@ -213,7 +215,9 @@ main() {
     fi
     source venv/bin/activate
     pip install --upgrade pip
-    pip install -r requirements.txt || echo "[coBoarding] Błąd instalacji zależności. Sprawdź wersję Pythona i requirements.txt."
+    pip install -r requirements.txt
+# Ensure beautifulsoup4 is installed for all test/e2e scenarios
+pip show beautifulsoup4 >/dev/null 2>&1 || pip install beautifulsoup4 || echo "[coBoarding] Błąd instalacji zależności. Sprawdź wersję Pythona i requirements.txt."
   else
     source venv/bin/activate
   fi
@@ -225,8 +229,8 @@ main() {
       bash ./install.sh
     elif [ -f ./setup-all.sh ]; then
       bash ./setup-all.sh
-    elif [ -f ./init.sh ]; then
-      bash ./init.sh
+    elif [ -f ./coboarding.sh ]; then
+      bash ./coboarding.sh
     else
       echo "Brak skryptu instalacyjnego (install.sh/setup-all.sh/init.sh)! Przerwano."
       exit 1
@@ -277,12 +281,21 @@ main() {
 
   # Informacja o dostępie
   if [ $? -eq 0 ]; then
-    echo "[coBoarding] System został uruchomiony!"
-    echo "- Web:      http://localhost:8082"
-    echo "- Terminal: http://localhost:8081"
-    echo "- Przegląd: http://localhost:8082"
+    echo -e "${GREEN}\n============================================="
+    echo -e "[coBoarding] System został uruchomiony!"
+    echo -e "---------------------------------------------"
+    echo -e "- Web:      http://localhost:8082"
+    echo -e "- Terminal: http://localhost:8081"
+    echo -e "- Przegląd: http://localhost:8082"
+    echo -e "=============================================${NC}\n"
   else
-    echo "[coBoarding] Błąd podczas uruchamiania środowiska."
+    echo -e "${RED}\n============================================="
+    echo -e "[coBoarding] Błąd podczas uruchamiania środowiska!"
+    echo -e "---------------------------------------------"
+    echo -e "- Sprawdź logi kontenerów: docker-compose logs --tail=40"
+    echo -e "- Sprawdź log monitora: tail -40 monitor.log"
+    echo -e "- Najczęstsze przyczyny: brak wolnych portów, błędna konfiguracja .env, brak zależności lub błędy w requirements.txt"
+    echo -e "=============================================${NC}\n"
     exit 1
   fi
 }

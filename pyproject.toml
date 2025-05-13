@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coboarding"
-version = "0.1.3"
+version = "0.1.6"
 description = "Automated Development Environment"
 authors = [{ name = "Tom Sapletta" }]
 requires-python = ">=3.8"
@@ -12,7 +12,7 @@ readme = "README.md"
 license = "Apache-2.0"
 
 [project.urls]
-Documentation = "https://github.com/coboarding/python/blob/main/README.md"
-Changelog = "https://github.com/coboarding/python/blob/main/CHANGELOG.md"
-MonitoringSystemDocs = "https://github.com/coboarding/python/blob/main/docs/monitoring-system.md"
-Repository = "https://github.com/coboarding/python.git"
+Documentation = "https://github.com/coboarding/coboarding/blob/main/README.md"
+Changelog = "https://github.com/coboarding/coboarding/blob/main/CHANGELOG.md"
+MonitoringSystemDocs = "https://github.com/coboarding/coboarding/blob/main/docs/monitoring-system.md"
+Repository = "https://github.com/coboarding/coboarding.git"

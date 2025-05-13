@@ -1,0 +1,15 @@
+# GitHub Pages configuration for coBoarding documentation menu
+# This enables navigation menu on GitHub Pages
+
+# Set theme (minimal is simple and works well with navigation)
+theme: jekyll-theme-minimal
+
+# Navigation menu for documentation (visible on GitHub Pages)
+# To add more docs, add them to the 'nav' list
+nav:
+  - Home: README.md
+  - Quick Start: README.md#szybki-start
+  - Containers: README.md#struktura-kontenerów
+  - Tests: README.md#scenariusze-testowe
+  - Troubleshooting: README.md#faq
+  - Contact: README.md#kontakt-i-wsparcie

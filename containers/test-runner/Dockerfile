@@ -1,13 +1,30 @@
-# test-runner/Dockerfile
 FROM python:3.9-slim
 
 # Instalacja narzędzi testowych
-RUN pip install --no-cache-dir pytest requests beautifulsoup4 selenium webdriver-manager
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    curl \
+    unzip \
+    gnupg \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalacja Chrome
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
+
+# Utworzenie katalogu aplikacji
+WORKDIR /app
+
+# Kopiowanie requirements i instalacja zależności
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Kopiowanie skryptów testowych
 COPY tests/ /app/tests/
-
-WORKDIR /app
 
 # Ustawienie zmiennych środowiskowych
 ENV PYTHONUNBUFFERED=1

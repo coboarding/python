@@ -1,14 +1,14 @@
-# docker-compose.yml (uzupełnienie)
 version: '3.8'
 
 services:
-
   llm-orchestrator:
-    build: ./containers/llm-orchestrator
+    build:
+      context: ./containers/llm-orchestrator
     container_name: llm-orchestrator
     volumes:
       - ./volumes/models:/app/models
       - ./volumes/config:/app/config
+      - ./volumes/cv:/app/cv:ro
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
     deploy:
@@ -20,86 +20,143 @@ services:
               capabilities: [gpu]
     ports:
       - "5000:5000"  # API LLM
+    networks:
+      - autoformfiller-network
 
   browser-service:
-    build: ./containers/browser-service
+    build:
+      context: ./containers/browser-service
     container_name: browser-service
     volumes:
-      - ./volumes/cv:/app/cv
+      - ./volumes/cv:/app/cv:ro
       - ./volumes/config:/app/config
       - ./volumes/passwords:/app/passwords
       - ./volumes/recordings:/app/recordings
     environment:
       - DISPLAY=:99
+      - VNC_RESOLUTION=1920x1080
+      - VNC_COL_DEPTH=24
+    networks:
+      - autoformfiller-network
     depends_on:
       - llm-orchestrator
 
   novnc:
-    image: theasp/novnc:latest
+    build:
+      context: ./containers/novnc
     container_name: novnc
-    environment:
-      - DISPLAY_WIDTH=1920
-      - DISPLAY_HEIGHT=1080
-      - RUN_XTERM=no
-      - RUN_FLUXBOX=yes
     ports:
-      - "8082:8082"  # noVNC web interface
-    depends_on:
-      - browser-service
-
-  test-forms-server:
-    build:
-      context: ./containers/test-forms-server
-    container_name: test-forms-server
-    ports:
-      - "8090:80"  # Dostęp z zewnątrz do testowych formularzy
-    volumes:
-      - ./containers/test-forms-server/forms:/usr/share/nginx/html/forms
+      - "8080:8080"  # noVNC web interface
     networks:
-      - auto-form-filler-network
-
-  test-runner:
-    build:
-      context: ./containers/test-runner
-    container_name: test-runner
+      - autoformfiller-network
     depends_on:
-      - test-forms-server
-      - llm-orchestrator
       - browser-service
+    environment:
+      - VNC_HOST=browser-service
+      - VNC_PORT=5900
+      - NOVNC_OPTS=--compression=9 --quality=3
+
+  web-terminal:
+    build:
+      context: ./containers/web-terminal
+    container_name: web-terminal
+    ports:
+      - "8081:7681"  # Web terminal
     volumes:
       - ./volumes:/volumes
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - auto-form-filler-network
-    # Domyślnie zatrzymany - uruchamiamy go ręcznie podczas testów
-    command: sleep infinity
+      - autoformfiller-network
+    depends_on:
+      - llm-orchestrator
+      - browser-service
 
   web-interface:
     build:
       context: ./containers/web-interface
     container_name: web-interface
     ports:
-      - "8082:80"    # HTTP przekierowanie
-      - "8443:443"   # HTTPS dla rozpoznawania mowy
-    depends_on:
-      - llm-orchestrator
-      - voice-interface
-      - novnc
+      - "8082:80"    # HTTP redirect
+      - "8443:443"   # HTTPS for Web Speech API
     networks:
-      - auto-form-filler-network
-
-  voice-interface:
-    build: ./containers/voice-interface
-    container_name: voice-interface
-    volumes:
-      - /dev/snd:/dev/snd  # Dostęp do urządzeń audio
-    devices:
-      - /dev/snd:/dev/snd  # Urządzenia audio
-    ports:
-      - "6000:6000"  # Port API głosowego
+      - autoformfiller-network
     depends_on:
       - llm-orchestrator
+      - novnc
+      - web-voice-api
+
+  web-voice-api:
+    build:
+      context: ./containers/web-voice-api
+    container_name: web-voice-api
+    ports:
+      - "6000:6000"  # API for voice recognition
+    networks:
+      - autoformfiller-network
+    depends_on:
+      - llm-orchestrator
+    volumes:
+      - ./volumes/audio:/app/audio
+
+  test-forms-server:
+    build:
+      context: ./containers/test-forms-server
+    container_name: test-forms-server
+    ports:
+      - "8090:80"  # Test forms webserver
+    volumes:
+      - ./containers/test-forms-server/forms:/usr/share/nginx/html/forms
+    networks:
+      - autoformfiller-network
+
+  test-runner:
+    build:
+      context: ./containers/test-runner
+    container_name: test-runner
+    volumes:
+      - ./volumes:/volumes
+    networks:
+      - autoformfiller-network
+    depends_on:
+      - test-forms-server
+      - browser-service
+      - llm-orchestrator
+    # Po zbudowaniu kontener jest zatrzymany - uruchamiamy go ręcznie do testów
+    command: sleep infinity
+
+
+  video-chat:
+    build:
+      context: ./containers/video-chat
+    container_name: video-chat
+    ports:
+      - "8085:443"  # HTTPS dla Video Chat
+    volumes:
+      - ./volumes/recordings:/app/recordings
+      - ./volumes/pipelines:/app/pipelines
+    environment:
+      - LLM_API_URL=http://llm-orchestrator:5000
+      - NOVNC_URL=http://novnc:8080
+      - TTS_ENGINE=google  # google, azure, or local
+      - STT_ENGINE=browser  # browser, google, or local
+    networks:
+      - autoformfiller-network
+    depends_on:
+      - llm-orchestrator
+      - novnc
+      - web-voice-api
+
 
 
 networks:
-  auto-form-filler-network:
+  autoformfiller-network:
     driver: bridge
+
+volumes:
+  cv-data:
+  model-data:
+  config-data:
+  passwords-data:
+  recordings-data:
+  audio-data:
+  pipelines-data:

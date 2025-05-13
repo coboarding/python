@@ -63,7 +63,7 @@ def prepare_test_data():
             "phone": "+48 123 456 789",
             "address": "ul. Przykładowa 123, 00-001 Warszawa, Polska",
             "linkedin": "https://linkedin.com/in/jankowalski",
-            "github": "https://github.com/jankowalski"
+            "github": "https://github.com/coboarding"
         },
         "education": [
             {

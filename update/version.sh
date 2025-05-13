@@ -1,6 +1,32 @@
 #!/bin/bash
 set -e  # Stop script on first error
 
+# --- COLORS ---
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+CYAN='\033[1;36m'
+NC='\033[0m' # No Color
+
+log_step() {
+    local msg="$1"
+    echo -e "${CYAN}[$(date +%H:%M:%S)] $msg${NC}"
+    sleep 0.05
+}
+log_ok() {
+    local msg="$1"
+    echo -e "${GREEN}$msg${NC}"
+}
+log_warn() {
+    local msg="$1"
+    echo -e "${YELLOW}$msg${NC}"
+}
+log_err() {
+    local msg="$1"
+    echo -e "${RED}$msg${NC}"
+}
+
 # Skip clear screen which requires TERM to be set
 echo "Starting version update process..."
 
@@ -131,13 +157,12 @@ if __name__ == "__main__":
     main()
 EOF
 
-# Run the temporary script to get project configuration
-echo "Detecting project configuration..."
+log_step "[1/9] Detecting project configuration..."
 source <(python3 "$TMP_SCRIPT")
 rm "$TMP_SCRIPT"
 
-echo "Project name: $PROJECT_NAME"
-echo "Package path: $PACKAGE_PATH"
+log_ok "Project name: $PROJECT_NAME"
+log_ok "Package path: $PACKAGE_PATH"
 echo "Files to update version in:"
 if [ -n "$VERSION_FILES" ]; then
     IFS=';' read -ra FILES <<< "$VERSION_FILES"
@@ -145,102 +170,97 @@ if [ -n "$VERSION_FILES" ]; then
         echo "  - $file"
     done
 else
-    echo "  No files found with proper permissions"
+    log_warn "  No files found with proper permissions"
 fi
 
-# Check if virtualenv is already activated
 if [ -z "$VIRTUAL_ENV" ]; then
-    echo "Creating and activating virtual environment..."
-    # Create virtualenv if it doesn't exist
+    log_step "[2/9] Creating and activating virtual environment..."
     if [ ! -d "venv" ]; then
         python -m venv venv
     fi
     source venv/bin/activate
+    log_ok "Virtual environment activated."
 else
-    echo "Virtual environment already active: $VIRTUAL_ENV"
+    log_ok "Virtual environment already active: $VIRTUAL_ENV"
 fi
 
-# Make sure we have the latest tools
-echo "Upgrading build tools..."
+log_step "[3/9] Upgrading build tools..."
 pip install --upgrade pip build twine
+log_ok "Build tools upgraded."
 
-# Check if we're in virtualenv
 if [ -z "$VIRTUAL_ENV" ]; then
-    echo "Error: Failed to activate virtual environment!"
+    log_err "Error: Failed to activate virtual environment!"
     exit 1
 fi
 
-# Install project dependencies
-echo "Installing project dependencies..."
+log_step "[4/9] Installing project dependencies..."
 if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
 fi
+log_ok "Dependencies installed."
 
-# Uninstall and reinstall package in edit mode
-echo "Reinstalling package in development mode..."
+log_step "[5/9] Reinstalling package in development mode..."
 pip uninstall -y "$PROJECT_NAME" || true
 pip install -e .
+log_ok "Package reinstalled in development mode."
 
-# Update version in source files
-echo "Updating version number..."
+log_step "[6/9] Updating version number..."
 if [ -n "$VERSION_FILES" ]; then
     IFS=';' read -ra FILES <<< "$VERSION_FILES"
     updated_files=0
     for file in "${FILES[@]}"; do
         if [ -w "$file" ]; then
-            echo "Updating version in file: $file"
+            log_step "Updating version in file: $file"
             if python update/src.py -f "$file" --type patch; then
                 updated_files=$((updated_files+1))
             else
-                echo "Failed to update version in file $file"
+                log_warn "Failed to update version in file $file"
             fi
         else
-            echo "Skipped file $file (no write permission)"
+            log_warn "Skipped file $file (no write permission)"
         fi
     done
-    
     if [ $updated_files -eq 0 ]; then
-        echo "Warning: No files were updated. Check file permissions."
+        log_warn "Warning: No files were updated. Check file permissions."
     else
-        echo "Successfully updated version in $updated_files files."
+        log_ok "Successfully updated version in $updated_files files."
     fi
 else
-    echo "No files to update version"
-    echo "Using default version from CHANGELOG.md"
+    log_warn "No files to update version"
+    log_warn "Using default version from CHANGELOG.md"
 fi
 
-# Generate entry in CHANGELOG.md
-echo "Generating entry in CHANGELOG.md..."
+log_step "[7/9] Generating entry in CHANGELOG.md..."
 if [ -f "CHANGELOG.md" ] && [ ! -w "CHANGELOG.md" ]; then
-    echo "Warning: No write permission to CHANGELOG.md file"
-    echo "Creating temporary file CHANGELOG.md.new"
-    python update/changelog.py --output CHANGELOG.md.new || echo "Failed to generate entry in CHANGELOG.md"
+    log_warn "No write permission to CHANGELOG.md file"
+    log_warn "Creating temporary file CHANGELOG.md.new"
+    python update/changelog.py --output CHANGELOG.md.new || log_warn "Failed to generate entry in CHANGELOG.md"
 else
-    python update/changelog.py || echo "Failed to generate entry in CHANGELOG.md"
+    python update/changelog.py || log_warn "Failed to generate entry in CHANGELOG.md"
 fi
+log_ok "CHANGELOG.md updated."
 
-# Run code quality checks and tests
-echo "Running code quality checks and tests..."
+log_step "[8/9] Running code quality checks and tests..."
 echo "This step ensures your code meets quality standards and all tests pass."
 bash update/test.sh --fix || {
-    echo "Code quality checks or tests failed. Please fix the issues before publishing."
-    echo "You can run './update/test.sh --fix' to automatically fix some issues."
+    log_err "Code quality checks or tests failed. Please fix the issues before publishing."
+    log_warn "You can run './update/test.sh --fix' to automatically fix some issues."
     exit 1
 }
-echo "All code quality checks and tests passed!"
+log_ok "All code quality checks and tests passed!"
 
-# Publish to GitHub
-echo "Push changes..."
+log_step "[9/9] Push changes to GitHub..."
 bash update/git.sh || {
-    echo "Failed to push changes to GitHub."
+    log_err "Failed to push changes to GitHub."
     exit 1
 }
+log_ok "Changes pushed to GitHub."
 
-# Publish to PyPI
-echo "Publishing to PyPI..."
+log_step "Publishing to PyPI..."
 bash update/pypi.sh || {
-    echo "Failed to publish to PyPI."
+    log_err "Failed to publish to PyPI."
     exit 1
 }
+log_ok "Published to PyPI."
 
-echo "Version update process completed successfully!"
+echo -e "${GREEN}Version update process completed successfully!${NC}"

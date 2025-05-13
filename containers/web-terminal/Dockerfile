@@ -1,18 +1,39 @@
-# web-terminal/Dockerfile
-FROM tsl0922/ttyd:latest
+FROM alpine:3.16
 
-# Dodaj pomocnicze narzędzia
-RUN apk add --no-cache bash curl jq python3 py3-pip
+# Instalacja zależności
+RUN apk add --no-cache \
+    bash \
+    curl \
+    wget \
+    python3 \
+    py3-pip \
+    git \
+    nodejs \
+    npm \
+    ttyd \
+    openssh-client \
+    jq \
+    make \
+    gcc \
+    g++ \
+    libc-dev \
+    python3-dev
 
-# Instalacja potrzebnych pakietów Pythona
-RUN pip3 install --no-cache-dir requests pyfiglet colorama
+# Instalacja zależności Python
+RUN pip3 install --no-cache-dir \
+    rich \
+    requests \
+    colorama \
+    tabulate \
+    pyfiglet \
+    argcomplete
 
 # Kopiowanie skryptu startowego
 COPY startup.sh /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/startup.sh
 
-# Ekspozycja portu
+# Ekspozycja portu ttyd
 EXPOSE 7681
 
-# Uruchomienie terminala z naszym interfejsem
+# Uruchomienie ttyd
 ENTRYPOINT ["/usr/local/bin/startup.sh"]

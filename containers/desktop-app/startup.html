@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AutoFormFiller - Uruchamianie</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: rgba(44, 62, 80, 0.9);
+      color: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 20px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #34db98;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status {
+      text-align: center;
+      max-width: 80%;
+      height: 60px;
+      overflow: auto;
+    }
+
+    .error {
+      color: #ff6b6b;
+    }
+  </style>
+</head>
+<body>
+  <img src="assets/icons/png/128x128.png" alt="Logo" class="logo">
+  <div class="spinner"></div>
+  <div id="status" class="status">Uruchamianie systemu...</div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    // Nasłuchiwanie na aktualizacje statusu
+    ipcRenderer.on('update-message', (event, data) => {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = data.message;
+
+      if (data.isError) {
+        statusEl.classList.add('error');
+      } else {
+        statusEl.classList.remove('error');
+      }
+    });
+  </script>
+</body>
+</html>

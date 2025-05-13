@@ -1,4 +1,3 @@
-# web-interface/Dockerfile (zmodyfikowany)
 FROM node:16 as build
 
 WORKDIR /app
@@ -23,7 +22,8 @@ RUN mkdir -p /etc/nginx/ssl
 RUN apk add --no-cache openssl && \
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt \
-    -subj "/C=PL/ST=State/L=City/O=Organization/CN=localhost"
+    -subj "/C=PL/ST=State/L=City/O=coboarding/CN=localhost"
+# Zmieniono O=AutoFormFiller na O=coboarding
 
 # Kopiowanie konfiguracji Nginx z HTTPS
 COPY nginx.conf /etc/nginx/conf.d/default.conf

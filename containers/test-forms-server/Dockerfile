@@ -1,4 +1,3 @@
-# test-forms-server/Dockerfile
 FROM nginx:alpine
 
 # Kopiowanie formularzy testowych
@@ -8,4 +7,4 @@ COPY forms/ /usr/share/nginx/html/forms/
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Ekspozycja portu
-EXPOSE 8090
+EXPOSE 80

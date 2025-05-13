@@ -151,7 +151,16 @@ function App() {
           <button onClick={handleFillForm} disabled={status === 'loading'}>
             {status === 'loading' ? 'Wypełnianie...' : 'Wypełnij formularz'}
           </button>
-          
+
+          <div className="video-chat-button">
+            <button
+              onClick={() => window.open('https://localhost:8085', '_blank')}
+              className="video-chat-btn"
+            >
+              <i className="video-icon"></i>
+              Video Chat z LLM
+            </button>
+          </div>
           <button 
             className={recording ? 'recording' : ''} 
             onClick={toggleVoiceRecognition}
