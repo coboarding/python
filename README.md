@@ -2,6 +2,16 @@
 
 coBoarding to kompleksowy, kontenerowy system do automatycznego wypełniania formularzy rekrutacyjnych, kładący nacisk na prywatność, elastyczność oraz wsparcie wielojęzyczne.
 
+<!-- coBoarding SVG Logo -->
+<p align="center">
+  <svg width="420" height="100" viewBox="0 0 420 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="10" width="95" height="80" rx="18" fill="#3498db"/>
+    <text x="50" y="65" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="42" fill="#fff" font-weight="bold">co</text>
+    <rect x="110" y="10" width="295" height="80" rx="18" fill="#222"/>
+    <text x="260" y="65" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="42" fill="#fff" font-weight="bold">Boarding</text>
+  </svg>
+</p>
+
 ---
 
 ## Szybki start
