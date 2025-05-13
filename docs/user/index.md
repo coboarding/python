@@ -15,8 +15,16 @@ Ten dział zawiera instrukcje, przewodniki i odpowiedzi na najczęstsze pytania 
 - [Instalacja](../install.md)
 - [FAQ](../faq.md)
 - [Przykłady użycia](../examples.md)
-- [Kontakt](../contact.md)
+- [Wsparcie:](#wsparcie-i-kontakt) Społeczność/komercyjne wsparcie, + kanał na Discord
+- [Kontakt](#wsparcie-i-kontakt)
 
 ---
 
 _Jeśli jesteś użytkownikiem końcowym, zacznij tutaj!_
+
+## Wsparcie i kontakt
+
+Masz pytania? Dołącz do społeczności na Discordzie lub skorzystaj z komercyjnego wsparcia. Szczegóły na stronie głównej lub napisz na coboarding@protonmail.com.
+
+- [Kanał Discord](https://discord.gg/TwojLink)
+- Email: coboarding@protonmail.com

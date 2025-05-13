@@ -79,27 +79,26 @@ System działa na architekturze mikroserwisowej (browser-service, llm-orchestrat
 
 ## Porównanie rozwiązań do automatycznego wypełniania formularzy
 
-| Cecha | coBoarding (Nasze rozwiązanie) | Manus AI | rtrvr.ai | Magical |
-|-------|-------------------------------------|----------|----------|---------|
-| **Model wdrożenia** | Self-hosted Docker | SaaS / cloud-based | Rozszerzenie Chrome | Rozszerzenie Chrome |
-| **Koszt** | Darmowy (open source) | Od 39$/mies. za 3900 kredytów | 10$/mies. (~10,000 akcji) | Od 10$/mies. |
+| Cecha | coBoarding (Nasze rozwiązanie)                        | Manus AI | rtrvr.ai | Magical |
+|-------|-------------------------------------------------------|----------|----------|---------|
+| **Model wdrożenia** | Self-hosted Docker                                    | SaaS / cloud-based | Rozszerzenie Chrome | Rozszerzenie Chrome |
+| **Koszt** | Darmowy (open source)                                 | Od 39$/mies. za 3900 kredytów | 10$/mies. (~10,000 akcji) | Od 10$/mies. |
 | **Wymagania systemowe** | Docker, min. 8GB RAM (więcej dla lepszych modeli LLM) | Tylko przeglądarka | Tylko przeglądarka | Tylko przeglądarka |
-| **Przetwarzanie danych** | 100% lokalne | W chmurze | W przeglądarce | W przeglądarce |
-| **Wielojęzyczność** | PL/DE/EN z auto-detekcją | Wiele języków | Ograniczone | Ograniczone |
-| **Interfejs użytkownika** | Web UI + noVNC + sterowanie głosowe | Webowa aplikacja | Prosty UI w Chrome | Intuicyjny UI w Chrome |
-| **Modele AI** | Lokalne LLM, wybór modeli wg. dostępnych zasobów | GPT-4, Claude | Wbudowane AI | Wbudowane AI (API) |
-| **Obsługa uploadów plików** | Pełna obsługa | Pełna obsługa | Ograniczona | Ograniczona |
-| **Wypełnianie złożonych formularzy** | Zaawansowana analiza i mapowanie | Zaawansowana analiza | Podstawowa analiza | Podstawowa analiza |
-| **Integracja z hasłami** | Bitwarden, PassBolt | Różne menedżery | Integracja z Chrome | Integracja z Chrome |
-| **Nagrywanie sesji** | Wbudowane | Wbudowane | Brak | Brak |
-| **Automatyczna generacja pipeline'ów** | Z użyciem LLM | Z użyciem GPT-4 | Brak | Brak |
-| **Sterowanie głosowe** | Web Speech API | Ograniczone | Brak | Brak |
-| **Własne środowisko testowe** | Rozbudowane z różnymi typami formularzy | Brak | Brak | Brak |
-| **Skalowalność** | Ograniczona do zasobów lokalnych/serwera | Chmurowa | Ograniczona do przeglądarki | Ograniczona do przeglądarki |
-| **Łatwość instalacji** | Wymaga konfiguracji Docker | Bardzo łatwa | Bardzo łatwa | Bardzo łatwa |
-| **Prywatność danych** | Pełna (wszystko lokalnie) | Dane w chmurze | W przeglądarce | W przeglądarce |
-| **Dokumentacja** | Kompletna | Profesjonalna | Podstawowa | Dobra |
-| **Wsparcie** | Społeczność | Komercyjne, SLA | Komercyjne | Komercyjne |
+| **Przetwarzanie danych** | 100% lokalne                                          | W chmurze | W przeglądarce | W przeglądarce |
+| **Wielojęzyczność** | PL/DE/EN z auto-detekcją                              | Wiele języków | Ograniczone | Ograniczone |
+| **Interfejs użytkownika** | Web UI + noVNC + sterowanie głosowe                   | Webowa aplikacja | Prosty UI w Chrome | Intuicyjny UI w Chrome |
+| **Modele AI** | Lokalne LLM, wybór modeli wg. dostępnych zasobów      | GPT-4, Claude | Wbudowane AI | Wbudowane AI (API) |
+| **Obsługa uploadów plików** | Pełna obsługa                                         | Pełna obsługa | Ograniczona | Ograniczona |
+| **Wypełnianie złożonych formularzy** | Zaawansowana analiza i mapowanie                      | Zaawansowana analiza | Podstawowa analiza | Podstawowa analiza |
+| **Integracja z hasłami** | Bitwarden, PassBolt                                   | Różne menedżery | Integracja z Chrome | Integracja z Chrome |
+| **Nagrywanie sesji** | Wbudowane                                             | Wbudowane | Brak | Brak |
+| **Automatyczna generacja pipeline'ów** | Z użyciem LLM                                         | Z użyciem GPT-4 | Brak | Brak |
+| **Sterowanie głosowe** | Web Speech API                                        | Ograniczone | Brak | Brak |
+| **Własne środowisko testowe** | Rozbudowane z różnymi typami formularzy               | Brak | Brak | Brak |
+| **Skalowalność** | Ograniczona do zasobów lokalnych/serwera              | Chmurowa | Ograniczona do przeglądarki | Ograniczona do przeglądarki |
+| **Łatwość instalacji** | Wymaga konfiguracji Docker                            | Bardzo łatwa | Bardzo łatwa | Bardzo łatwa |
+| **Prywatność danych** | Pełna (wszystko lokalnie)                             | Dane w chmurze | W przeglądarce | W przeglądarce |
+| **Wsparcie** | Społeczność, Komercyjne, Discord                      | Komercyjne, SLA | Komercyjne | Komercyjne |
 
 ## 📚 Spis treści / Menu
 - [Szybki start](#szybki-start)
@@ -173,6 +172,12 @@ docker compose version
 Szczegółowe prompty i pytania weryfikacyjne znajdziesz w pliku `TODO.txt`.
 
 ## Kontakt i wsparcie
+
+Masz pytania lub potrzebujesz pomocy? Oferujemy wsparcie społeczności/komercyjne oraz szybki kontakt przez kanał na Discord:
+
+- [Kanał Discord](https://discord.gg/TwojLink)
+- Email: coboarding@protonmail.com
+
 Projekt open-source. Wszelkie zgłoszenia błędów i propozycje zmian prosimy kierować przez Issues na GitHub.
 
 # coBoarding
