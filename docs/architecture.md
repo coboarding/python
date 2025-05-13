@@ -1,3 +1,11 @@
+---
+title: Architektura coBoarding – diagramy Mermaid
+lang: pl
+keywords: architektura, coBoarding, mermaid, diagram, LLM, docker, automatyzacja
+summary: Diagramy architektury i przepływu działania systemu coBoarding, automatyzacja formularzy, LLM, Docker.
+description: Wizualizacja architektury i przepływu działania systemu coBoarding – platformy do automatycznego wypełniania formularzy rekrutacyjnych z wykorzystaniem LLM i Docker.
+---
+
 # Architektura coBoarding
 
 ```mermaid

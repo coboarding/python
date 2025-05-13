@@ -1,3 +1,11 @@
+---
+title: coBoarding – Automatyzacja formularzy, LLM, prywatność
+lang: pl
+keywords: coBoarding, automatyczne wypełnianie formularzy, LLM, Docker, prywatność, rekrutacja, AI, open source
+summary: coBoarding to platforma open-source do automatycznego, lokalnego wypełniania formularzy rekrutacyjnych z wykorzystaniem modeli językowych (LLM) i naciskiem na prywatność.
+description: coBoarding to system do automatyzacji wypełniania formularzy rekrutacyjnych z lokalnym przetwarzaniem danych, wsparciem dla modeli LLM, wielojęzycznością i pełną prywatnością.
+---
+
 # coBoarding Dokumentacja
 
 > **Menu działa na GitHub Pages i na GitHub!**
