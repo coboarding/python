@@ -2,7 +2,8 @@
 # This enables navigation menu on GitHub Pages
 
 # Set theme (minimal is simple and works well with navigation)
-theme: just-the-docs
+# theme: just-the-docs
+remote_theme: just-the-docs/just-the-docs
 mermaid: true
 favicon: "/docs/favicon.svg"
 
