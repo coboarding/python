@@ -38,6 +38,9 @@ log() {
 build_container() {
   log "INFO" "Budowanie kontenera llm-orchestrator-min z optymalizacjami cache..."
   
+  # Przejdź do katalogu projektu
+  cd /home/tom/github/coboarding/python/containers/llm-orchestrator-min
+  
   # Sprawdzenie czy BuildKit jest dostępny
   if docker buildx version &>/dev/null; then
     log "INFO" "Używam BuildKit do budowania kontenera"
@@ -48,19 +51,15 @@ build_container() {
     docker volume create coboarding-wheel-cache &>/dev/null || true
     
     # Budowanie z wykorzystaniem BuildKit i cache
-    cd /home/tom/github/coboarding/python
     docker buildx build \
       --build-arg BUILDKIT_INLINE_CACHE=1 \
       --cache-from llm-orchestrator-min:latest \
       --tag llm-orchestrator-min:latest \
-      --file containers/llm-orchestrator-min/Dockerfile \
       .
   else
     log "WARN" "BuildKit nie jest dostępny, używam standardowego buildera Docker"
-    cd /home/tom/github/coboarding/python
     docker build \
       -t llm-orchestrator-min:latest \
-      -f containers/llm-orchestrator-min/Dockerfile \
       .
   fi
   

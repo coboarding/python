@@ -15,11 +15,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Kopiowanie tylko pliku requirements.txt, aby wykorzystać cache Docker
-COPY containers/llm-orchestrator-min/requirements.txt .
+COPY requirements.txt .
 
 # Instalacja zależności Pythona z wykorzystaniem cache
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --upgrade pip && \
+RUN pip install --upgrade pip && \
     pip wheel --wheel-dir=/app/wheels -r requirements.txt
 
 # Druga faza - obraz docelowy
@@ -41,16 +40,16 @@ WORKDIR /app
 
 # Kopiowanie skompilowanych pakietów z poprzedniej fazy
 COPY --from=builder /app/wheels /app/wheels
-COPY containers/llm-orchestrator-min/requirements.txt .
+COPY requirements.txt .
 
 # Instalacja pakietów z lokalnych plików wheel
 RUN pip install --no-index --find-links=/app/wheels -r requirements.txt && \
     rm -rf /app/wheels
 
 # Kopiowanie kodu aplikacji
-COPY containers/llm-orchestrator-min/api.py ./
-COPY containers/llm-orchestrator-min/model-configs/ ./model-configs/
-COPY containers/llm-orchestrator-min/data/ ./data/
+COPY api.py ./
+COPY model-configs/ ./model-configs/ || true
+COPY data/ ./data/ || true
 
 # Pobieranie modelu
 ARG MODEL_VERSION=1.0
@@ -71,7 +70,7 @@ else \n\
 fi' > /app/download_model.sh && chmod +x /app/download_model.sh
 
 # Dodanie skryptów diagnostycznych i naprawczych
-COPY containers/llm-orchestrator-min/scripts/ /app/scripts/
+COPY scripts/ /app/scripts/ || true
 RUN chmod +x /app/scripts/*.sh || echo "No scripts to make executable"
 
 # Ekspozycja portu API
