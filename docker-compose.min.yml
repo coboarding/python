@@ -4,11 +4,24 @@ services:
   llm-orchestrator-min:
     build:
       context: ./containers/llm-orchestrator-min
+      args:
+        - BUILDKIT_INLINE_CACHE=1
     container_name: llm-orchestrator-min
     volumes:
       - ./volumes/models:/app/models
       - ./volumes/config:/app/config
       - pip-cache:/root/.cache/pip
+    environment:
+      - USE_INT8=true
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=production
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    restart: unless-stopped
     ports:
       - "5000:5000"  # API LLM
     networks:
@@ -17,12 +30,20 @@ services:
   browser-service:
     build:
       context: ./containers/browser-service
+      args:
+        - BUILDKIT_INLINE_CACHE=1
     container_name: browser-service
     volumes:
       - ./volumes/recordings:/app/recordings
       - pip-cache:/root/.cache/pip
     environment:
       - DISPLAY=:99
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    restart: unless-stopped
     ports:
       - "5900:5900"  # VNC
     networks:
@@ -31,7 +52,14 @@ services:
   novnc:
     build:
       context: ./containers/novnc
+      args:
+        - BUILDKIT_INLINE_CACHE=1
     container_name: novnc
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    restart: unless-stopped
     ports:
       - "8080:8080"  # noVNC Web UI
     networks:

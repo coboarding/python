@@ -13,6 +13,12 @@ echo -e "- Prosty model LLM działający na CPU (do 2B parametrów)"
 echo -e "- Przeglądarka dostępna przez noVNC"
 echo -e "- Brak menedżerów haseł, pipelines i sterowania głosowego"
 echo -e "- Zoptymalizowane cacheowanie paczek"
+echo -e "- Kwantyzacja int8 dla mniejszego zużycia pamięci"
+echo -e "- Limity zasobów dla kontenerów"
+
+# Włączenie BuildKit dla szybszego budowania
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
 
 # Sprawdzenie czy Docker jest zainstalowany
 if ! command -v docker &> /dev/null; then
@@ -41,9 +47,26 @@ else
     echo -e "${GREEN}Wolumen pip-cache już istnieje.${NC}"
 fi
 
+# Sprawdzenie dostępnej pamięci
+MEM_TOTAL=$(free -g | awk '/^Mem:/{print $2}')
+echo -e "${YELLOW}Dostępna pamięć: ${MEM_TOTAL}GB${NC}"
+
+if [ "$MEM_TOTAL" -lt 4 ]; then
+    echo -e "${RED}Uwaga: Dostępna pamięć poniżej 4GB. Wydajność może być ograniczona.${NC}"
+    # Zmniejszamy limity pamięci dla kontenerów
+    sed -i 's/memory: 2G/memory: 1G/g' docker-compose.min.yml
+    sed -i 's/memory: 1G/memory: 512M/g' docker-compose.min.yml
+    sed -i 's/memory: 256M/memory: 128M/g' docker-compose.min.yml
+    echo -e "${YELLOW}Limity pamięci zostały automatycznie zmniejszone.${NC}"
+fi
+
 # Zatrzymanie istniejących kontenerów, jeśli istnieją
 echo -e "${YELLOW}Zatrzymywanie istniejących kontenerów, jeśli istnieją...${NC}"
 docker-compose -f docker-compose.min.yml down 2>/dev/null
+
+# Czyszczenie nieużywanych obrazów i wolumenów dla oszczędności miejsca
+echo -e "${YELLOW}Czyszczenie nieużywanych zasobów Docker...${NC}"
+docker system prune -f --volumes 2>/dev/null
 
 # Budowanie i uruchamianie kontenerów
 echo -e "${GREEN}Budowanie i uruchamianie kontenerów...${NC}"
@@ -85,7 +108,28 @@ open_browser() {
 
 # Czekanie na uruchomienie usług
 echo -e "${YELLOW}Czekanie na uruchomienie usług...${NC}"
-sleep 10
+echo -e "${YELLOW}Sprawdzanie statusu API LLM...${NC}"
+
+# Sprawdzanie, czy API jest gotowe
+MAX_RETRIES=30
+RETRY_COUNT=0
+API_READY=false
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+  if curl -s http://localhost:5000/api/health | grep -q "status.*ok"; then
+    API_READY=true
+    break
+  fi
+  echo -n "."
+  RETRY_COUNT=$((RETRY_COUNT+1))
+  sleep 2
+done
+
+if [ "$API_READY" = true ]; then
+  echo -e "\n${GREEN}API LLM jest gotowe!${NC}"
+else
+  echo -e "\n${YELLOW}Upłynął limit czasu oczekiwania na API LLM. Kontynuowanie mimo to...${NC}"
+fi
 
 # Otwieranie noVNC w przeglądarce
 echo -e "${GREEN}Otwieranie noVNC w przeglądarce...${NC}"
@@ -94,6 +138,12 @@ open_browser "http://localhost:8080/vnc.html?autoconnect=true&password=secret"
 echo -e "${GREEN}=== coBoarding - Minimalna Wersja uruchomiona ===${NC}"
 echo -e "noVNC dostępny pod adresem: http://localhost:8080/vnc.html?autoconnect=true&password=secret"
 echo -e "API LLM dostępne pod adresem: http://localhost:5000"
+
+# Wyświetlanie informacji o zużyciu zasobów
+echo -e "${YELLOW}Informacje o zużyciu zasobów:${NC}"
+docker stats --no-stream
+
 echo -e "${YELLOW}Aby zatrzymać, użyj: docker-compose -f docker-compose.min.yml down${NC}"
 echo -e "${GREEN}Informacja o cache:${NC} Paczki Pythona są przechowywane w wolumenie Docker 'coboarding-pip-cache'"
 echo -e "Dzięki temu kolejne uruchomienia będą znacznie szybsze."
+echo -e "${GREEN}Optymalizacje:${NC} Kwantyzacja int8, limity pamięci, BuildKit, cacheowanie paczek"
