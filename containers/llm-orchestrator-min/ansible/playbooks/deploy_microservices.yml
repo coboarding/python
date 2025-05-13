@@ -1,0 +1,123 @@
+---
+# Playbook do wdrażania mikrousług llm-orchestrator
+- name: Deploy LLM Orchestrator Microservices
+  hosts: all
+  become: yes
+  vars:
+    docker_compose_version: "2.15.1"
+    project_root: "/opt/llm-orchestrator"
+    docker_registry: "your-registry.example.com"
+    environment: "{{ env | default('dev') }}"
+    
+  tasks:
+    - name: Aktualizacja pakietów
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+        
+    - name: Instalacja wymaganych pakietów
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - git
+        state: present
+        
+    - name: Dodanie klucza GPG Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+        
+    - name: Dodanie repozytorium Docker
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+        
+    - name: Instalacja Docker
+      apt:
+        name: docker-ce
+        state: present
+        
+    - name: Instalacja Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+        
+    - name: Utworzenie katalogu projektu
+      file:
+        path: "{{ project_root }}"
+        state: directory
+        mode: '0755'
+        
+    - name: Klonowanie repozytorium
+      git:
+        repo: https://github.com/coboarding/python.git
+        dest: "{{ project_root }}/repo"
+        version: main
+        
+    - name: Kopiowanie plików mikrousług
+      copy:
+        src: "{{ project_root }}/repo/containers/llm-orchestrator-min/microservices/"
+        dest: "{{ project_root }}/microservices/"
+        remote_src: yes
+        
+    - name: Kopiowanie docker-compose.yml
+      copy:
+        src: "{{ project_root }}/repo/containers/llm-orchestrator-min/docker-compose.yml"
+        dest: "{{ project_root }}/docker-compose.yml"
+        remote_src: yes
+        
+    - name: Tworzenie pliku .env
+      template:
+        src: templates/env.j2
+        dest: "{{ project_root }}/.env"
+        
+    - name: Budowanie obrazów Docker
+      community.docker.docker_compose:
+        project_src: "{{ project_root }}"
+        build: yes
+        nocache: "{{ nocache | default(false) }}"
+      register: output
+      
+    - name: Wyświetlenie wyniku budowania
+      debug:
+        var: output
+        
+    - name: Uruchomienie usług
+      community.docker.docker_compose:
+        project_src: "{{ project_root }}"
+        state: present
+        
+    - name: Sprawdzenie statusu usług
+      community.docker.docker_compose:
+        project_src: "{{ project_root }}"
+        services: all
+      register: service_status
+      
+    - name: Wyświetlenie statusu usług
+      debug:
+        var: service_status
+        
+    - name: Czekanie na uruchomienie API Gateway
+      uri:
+        url: http://localhost:80/api/health
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 30
+      delay: 10
+      ignore_errors: yes
+      
+    - name: Uruchomienie testów
+      shell: "{{ project_root }}/microservices/model-service/scripts/run_tests_after_startup.sh --url=http://localhost"
+      args:
+        chdir: "{{ project_root }}"
+      when: run_tests | default(false) | bool
+      
+    - name: Konfiguracja monitoringu
+      include_tasks: tasks/setup_monitoring.yml
+      when: setup_monitoring | default(false) | bool
