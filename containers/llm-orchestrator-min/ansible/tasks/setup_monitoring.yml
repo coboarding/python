@@ -1,0 +1,60 @@
+---
+# Zadania do konfiguracji monitoringu dla mikrousług llm-orchestrator
+- name: Utworzenie katalogu dla monitoringu
+  file:
+    path: "{{ project_root }}/monitoring"
+    state: directory
+    mode: '0755'
+
+- name: Kopiowanie konfiguracji Prometheus
+  template:
+    src: templates/prometheus.yml.j2
+    dest: "{{ project_root }}/monitoring/prometheus.yml"
+
+- name: Kopiowanie konfiguracji Grafana
+  template:
+    src: templates/grafana.ini.j2
+    dest: "{{ project_root }}/monitoring/grafana.ini"
+
+- name: Kopiowanie konfiguracji dashboardów Grafana
+  copy:
+    src: files/dashboards/
+    dest: "{{ project_root }}/monitoring/dashboards/"
+    directory_mode: yes
+
+- name: Tworzenie docker-compose dla monitoringu
+  template:
+    src: templates/docker-compose-monitoring.yml.j2
+    dest: "{{ project_root }}/monitoring/docker-compose.yml"
+
+- name: Uruchomienie stosu monitoringu
+  community.docker.docker_compose:
+    project_src: "{{ project_root }}/monitoring"
+    state: present
+
+- name: Czekanie na uruchomienie Grafana
+  uri:
+    url: http://localhost:3000/api/health
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 30
+  delay: 5
+  ignore_errors: yes
+
+- name: Konfiguracja źródła danych Prometheus w Grafana
+  uri:
+    url: http://localhost:3000/api/datasources
+    method: POST
+    body_format: json
+    body:
+      name: "Prometheus"
+      type: "prometheus"
+      url: "http://prometheus:9090"
+      access: "proxy"
+      isDefault: true
+    user: "admin"
+    password: "{{ grafana_admin_password }}"
+    force_basic_auth: yes
+    status_code: 200
+  ignore_errors: yes
