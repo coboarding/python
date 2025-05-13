@@ -24,9 +24,15 @@ COPY data/ ./data/
 
 # Utworzenie potrzebnych katalogów
 RUN mkdir -p /app/models /app/config
+RUN mkdir -p /app/model-configs /app/data
+
+# Kopiowanie plików model-configs i data jeśli istnieją
+COPY model-configs/ ./model-configs/ || true
+COPY data/ ./data/ || true
 
 # Ekspozycja portu API
 EXPOSE 5000
 
 # Uruchomienie API
-CMD ["python", "api.py"]
+# Uruchom API z logami na stdout i wyjściem błędów
+CMD ["python", "-u", "api.py"]
