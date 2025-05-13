@@ -1,5 +1,14 @@
 # coBoarding
 
+---
+
+## Dokumentacja
+
+- [Dokumentacja dla Klienta](./README.client.md)
+- [Dokumentacja dla Dewelopera](./README.developer.md)
+
+---
+
 coBoarding to kompleksowy, kontenerowy system do automatycznego wypełniania formularzy rekrutacyjnych, kładący nacisk na prywatność, elastyczność oraz wsparcie wielojęzyczne.
 
 <!-- coBoarding SVG Logo -->

@@ -188,6 +188,149 @@ save_docker_images() {
   done
 }
 
+# Funkcja do wyświetlania paska postępu
+progress_bar() {
+  local current=$1
+  local total=$2
+  local message=$3
+  local bar_size=40
+  local progress=$((current * bar_size / total))
+  local percentage=$((current * 100 / total))
+  
+  # Tworzenie paska postępu
+  local bar="["
+  for ((i=0; i<bar_size; i++)); do
+    if [ $i -lt $progress ]; then
+      bar+="="
+    else
+      bar+=" "
+    fi
+  done
+  bar+="] ${percentage}%"
+  
+  # Wyświetlanie paska postępu
+  echo -ne "\r${BLUE}[INFO]${NC} ${message} ${bar}"
+  
+  # Jeśli to ostatni krok, dodaj nową linię
+  if [ $current -eq $total ]; then
+    echo ""
+  fi
+}
+
+# Funkcja do monitorowania zużycia zasobów
+monitor_resources() {
+  local interval=$1
+  local duration=$2
+  local output_file="./resource_usage.log"
+  
+  log "INFO" "Rozpoczęcie monitorowania zużycia zasobów (co ${interval}s przez ${duration}s)"
+  echo "Timestamp,Container,CPU%,Memory Usage,Memory Limit,Memory %" > "$output_file"
+  
+  local end_time=$(($(date +%s) + duration))
+  while [ $(date +%s) -lt $end_time ]; do
+    docker stats --no-stream --format "{{.Name}},{{.CPUPerc}},{{.MemUsage}},{{.MemPerc}}" | grep -E 'llm-orchestrator-min|browser-service|novnc' | while IFS=, read -r container cpu mem_usage mem_perc; do
+      echo "$(date '+%Y-%m-%d %H:%M:%S'),${container},${cpu},${mem_usage},${mem_perc}" >> "$output_file"
+    done
+    sleep $interval
+  done
+  
+  log "SUCCESS" "Monitorowanie zużycia zasobów zakończone. Wyniki zapisane w pliku: $output_file"
+}
+
+# Funkcja do sprawdzania i czyszczenia nieużywanych obrazów Docker
+cleanup_docker_images() {
+  log "INFO" "Sprawdzanie nieużywanych obrazów Docker..."
+  
+  # Liczba nieużywanych obrazów
+  local unused_images=$(docker images -f "dangling=true" -q | wc -l)
+  
+  if [ "$unused_images" -gt 0 ]; then
+    log "INFO" "Znaleziono $unused_images nieużywanych obrazów Docker."
+    
+    # Pytanie użytkownika o zgodę na usunięcie
+    read -p "Czy chcesz usunąć nieużywane obrazy Docker? (t/n): " answer
+    if [[ "$answer" =~ ^[Tt]$ ]]; then
+      log "INFO" "Usuwanie nieużywanych obrazów Docker..."
+      docker rmi $(docker images -f "dangling=true" -q) 2>/dev/null || log "WARNING" "Nie udało się usunąć niektórych obrazów."
+      log "SUCCESS" "Nieużywane obrazy Docker zostały usunięte."
+    else
+      log "INFO" "Pomijanie usuwania nieużywanych obrazów Docker."
+    fi
+  else
+    log "INFO" "Brak nieużywanych obrazów Docker."
+  fi
+}
+
+# Funkcja do generowania raportu o stanie systemu
+generate_system_report() {
+  local report_file="./system_report.txt"
+  log "INFO" "Generowanie raportu o stanie systemu..."
+  
+  {
+    echo "=== Raport o stanie systemu coBoarding ==="
+    echo "Data wygenerowania: $(date '+%Y-%m-%d %H:%M:%S')"
+    echo ""
+    
+    echo "=== Informacje o systemie ==="
+    echo "System operacyjny: $(uname -s)"
+    echo "Wersja jądra: $(uname -r)"
+    echo "Architektura: $(uname -m)"
+    echo ""
+    
+    echo "=== Informacje o zasobach ==="
+    echo "Procesor:"
+    lscpu | grep "Model name" || echo "Nie można uzyskać informacji o procesorze"
+    echo "Liczba rdzeni: $(nproc --all)"
+    echo ""
+    
+    echo "Pamięć:"
+    free -h || echo "Nie można uzyskać informacji o pamięci"
+    echo ""
+    
+    echo "Dysk:"
+    df -h . || echo "Nie można uzyskać informacji o dysku"
+    echo ""
+    
+    echo "=== Informacje o Docker ==="
+    echo "Wersja Docker:"
+    docker --version || echo "Nie można uzyskać informacji o wersji Docker"
+    echo ""
+    
+    echo "Wersja Docker Compose:"
+    docker-compose --version || echo "Nie można uzyskać informacji o wersji Docker Compose"
+    echo ""
+    
+    echo "Uruchomione kontenery:"
+    docker ps || echo "Nie można uzyskać informacji o uruchomionych kontenerach"
+    echo ""
+    
+    echo "Wolumeny Docker:"
+    docker volume ls | grep "coboarding" || echo "Nie znaleziono wolumenów coBoarding"
+    echo ""
+    
+    echo "=== Informacje o obrazach Docker ==="
+    docker images | grep -E 'llm-orchestrator-min|browser-service|novnc' || echo "Nie znaleziono obrazów coBoarding"
+    echo ""
+    
+    echo "=== Informacje o cache ==="
+    echo "Rozmiar wolumenu pip-cache:"
+    du -sh $(docker volume inspect coboarding-pip-cache -f '{{ .Mountpoint }}') 2>/dev/null || echo "Nie można uzyskać informacji o rozmiarze wolumenu pip-cache"
+    echo ""
+    
+    echo "Rozmiar wolumenu wheel-cache:"
+    du -sh $(docker volume inspect coboarding-wheel-cache -f '{{ .Mountpoint }}') 2>/dev/null || echo "Nie można uzyskać informacji o rozmiarze wolumenu wheel-cache"
+    echo ""
+    
+    echo "Rozmiar wolumenu models-cache:"
+    du -sh $(docker volume inspect coboarding-models-cache -f '{{ .Mountpoint }}') 2>/dev/null || echo "Nie można uzyskać informacji o rozmiarze wolumenu models-cache"
+    echo ""
+    
+    echo "=== Koniec raportu ==="
+  } > "$report_file"
+  
+  log "SUCCESS" "Raport o stanie systemu został wygenerowany i zapisany w pliku: $report_file"
+}
+
 # Inicjalizacja pliku logów
 > ./coboarding-min.log
 log "INFO" "=== Uruchamianie coBoarding - Minimalna Wersja ==="
@@ -199,6 +342,66 @@ log "INFO" "- Brak menedżerów haseł, pipelines i sterowania głosowego"
 log "INFO" "- Zoptymalizowane cacheowanie paczek"
 log "INFO" "- Kwantyzacja int8 dla mniejszego zużycia pamięci"
 log "INFO" "- Limity zasobów dla kontenerów"
+
+# Parsowanie argumentów wiersza poleceń
+SKIP_TESTS=false
+FORCE_REBUILD=false
+MONITOR_RESOURCES=false
+GENERATE_REPORT=false
+CLEANUP_IMAGES=false
+VERBOSE=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --skip-tests)
+      SKIP_TESTS=true
+      log "INFO" "Pomijanie testów komponentów."
+      shift
+      ;;
+    --force-rebuild)
+      FORCE_REBUILD=true
+      log "INFO" "Wymuszenie przebudowania obrazów Docker."
+      shift
+      ;;
+    --monitor-resources)
+      MONITOR_RESOURCES=true
+      log "INFO" "Włączono monitorowanie zużycia zasobów."
+      shift
+      ;;
+    --generate-report)
+      GENERATE_REPORT=true
+      log "INFO" "Włączono generowanie raportu o stanie systemu."
+      shift
+      ;;
+    --cleanup-images)
+      CLEANUP_IMAGES=true
+      log "INFO" "Włączono czyszczenie nieużywanych obrazów Docker."
+      shift
+      ;;
+    --verbose)
+      VERBOSE=true
+      log "INFO" "Włączono tryb szczegółowy (verbose)."
+      shift
+      ;;
+    --help)
+      echo "Użycie: ./runmin.sh [opcje]"
+      echo "Opcje:"
+      echo "  --skip-tests           Pomija testy komponentów"
+      echo "  --force-rebuild        Wymusza przebudowanie obrazów Docker"
+      echo "  --monitor-resources    Włącza monitorowanie zużycia zasobów"
+      echo "  --generate-report      Generuje raport o stanie systemu"
+      echo "  --cleanup-images       Czyści nieużywane obrazy Docker"
+      echo "  --verbose              Włącza tryb szczegółowy (verbose)"
+      echo "  --help                 Wyświetla tę pomoc"
+      exit 0
+      ;;
+    *)
+      log "ERROR" "Nieznana opcja: $1"
+      echo "Użyj --help, aby wyświetlić dostępne opcje."
+      exit 1
+      ;;
+  esac
+done
 
 # Wyłączenie BuildKit, ponieważ może nie być dostępny
 export DOCKER_BUILDKIT=0
@@ -292,17 +495,23 @@ fi
 log "INFO" "Sprawdzanie czy obrazy Docker są już zbudowane..."
 REBUILD_NEEDED=false
 
-for image in "llm-orchestrator-min" "browser-service" "novnc"; do
-    if ! docker images | grep -q "$image"; then
-        log "INFO" "Obraz $image nie istnieje, będzie budowany."
-        REBUILD_NEEDED=true
-    else
-        log "INFO" "Obraz $image już istnieje."
-        image_id=$(docker images -q "$image")
-        image_created=$(docker inspect -f '{{ .Created }}' "$image_id")
-        log "INFO" "Obraz $image utworzony: $image_created"
-    fi
-done
+if [ "$FORCE_REBUILD" = true ]; then
+    log "INFO" "Wymuszono przebudowanie obrazów Docker."
+    REBUILD_NEEDED=true
+else
+    for image in "llm-orchestrator-min" "browser-service" "novnc"; do
+        if ! docker images | grep -q "$image"; then
+            log "INFO" "Obraz $image nie istnieje, będzie budowany."
+            REBUILD_NEEDED=true
+        else
+            log "INFO" "Obraz $image już istnieje."
+            image_id=$(docker images -q "$image")
+            image_created=$(docker inspect -f '{{ .Created }}' "$image_id")
+            image_size=$(docker inspect -f '{{ .Size }}' "$image_id" | numfmt --to=iec-i --suffix=B)
+            log "INFO" "Obraz $image utworzony: $image_created, rozmiar: $image_size"
+        fi
+    done
+fi
 
 # Zatrzymanie istniejących kontenerów, jeśli istnieją
 log "INFO" "Zatrzymywanie istniejących kontenerów, jeśli istnieją..."
@@ -356,41 +565,45 @@ log "INFO" "Budowanie i uruchamianie kontenerów..."
 if [ "$REBUILD_NEEDED" = true ]; then
     log "INFO" "Budowanie obrazów Docker od nowa. To może potrwać kilka minut..."
     log "INFO" "Używanie cache dla przyspieszenia procesu budowania."
-    docker-compose -f docker-compose.min.yml build --pull --no-cache
+    
+    # Wyświetlanie paska postępu podczas budowania
+    if [ "$VERBOSE" = true ]; then
+        docker-compose -f docker-compose.min.yml build --pull --no-cache
+    else
+        log "INFO" "Budowanie obrazu llm-orchestrator-min (1/3)..."
+        docker-compose -f docker-compose.min.yml build --pull --no-cache llm-orchestrator-min > /dev/null 2>&1
+        progress_bar 1 3 "Budowanie obrazów Docker..."
+        
+        log "INFO" "Budowanie obrazu browser-service (2/3)..."
+        docker-compose -f docker-compose.min.yml build --pull --no-cache browser-service > /dev/null 2>&1
+        progress_bar 2 3 "Budowanie obrazów Docker..."
+        
+        log "INFO" "Budowanie obrazu novnc (3/3)..."
+        docker-compose -f docker-compose.min.yml build --pull --no-cache novnc > /dev/null 2>&1
+        progress_bar 3 3 "Budowanie obrazów Docker..."
+    fi
+    
     BUILD_RESULT=$?
+    
+    if [ $BUILD_RESULT -eq 0 ]; then
+        log "SUCCESS" "Obrazy Docker zostały pomyślnie zbudowane."
+        
+        log "INFO" "Uruchamianie kontenerów..."
+        docker-compose -f docker-compose.min.yml up -d
+        UP_RESULT=$?
+        
+        if [ $UP_RESULT -eq 0 ]; then
+            log "SUCCESS" "Kontenery zostały pomyślnie uruchomione."
+        else
+            log "ERROR" "Wystąpił błąd podczas uruchamiania kontenerów."
+        fi
+    else
+        log "ERROR" "Wystąpił błąd podczas budowania obrazów Docker."
+    fi
 else
     log "INFO" "Używanie istniejących obrazów Docker. Uruchamianie kontenerów..."
     docker-compose -f docker-compose.min.yml up -d
     BUILD_RESULT=$?
-fi
-
-if [ $BUILD_RESULT -ne 0 ]; then
-    log "ERROR" "Wystąpił błąd podczas budowania/uruchamiania kontenerów."
-    log "INFO" "Próba uruchomienia kontenerów pojedynczo..."
-    
-    # Próba uruchomienia każdego kontenera osobno
-    docker-compose -f docker-compose.min.yml up -d llm-orchestrator-min
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Nie udało się uruchomić kontenera llm-orchestrator-min."
-    else
-        log "SUCCESS" "Kontener llm-orchestrator-min uruchomiony pomyślnie."
-    fi
-    
-    docker-compose -f docker-compose.min.yml up -d browser-service
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Nie udało się uruchomić kontenera browser-service."
-    else
-        log "SUCCESS" "Kontener browser-service uruchomiony pomyślnie."
-    fi
-    
-    docker-compose -f docker-compose.min.yml up -d novnc
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Nie udało się uruchomić kontenera novnc."
-    else
-        log "SUCCESS" "Kontener novnc uruchomiony pomyślnie."
-    fi
-else
-    log "SUCCESS" "Wszystkie kontenery uruchomione pomyślnie."
 fi
 
 # Zapisanie obrazów Docker do cache
@@ -560,3 +773,32 @@ log "INFO" "- coboarding-chrome-cache: cache przeglądarki Chrome"
 log "INFO" "Dzięki temu kolejne uruchomienia będą znacznie szybsze."
 log "INFO" "Optymalizacje: Kwantyzacja int8, limity pamięci, cacheowanie paczek, zapisywanie obrazów Docker"
 log "INFO" "Logi zostały zapisane w pliku: ./coboarding-min.log"
+
+# Uruchomienie dodatkowych funkcji na podstawie argumentów
+if [ "$MONITOR_RESOURCES" = true ]; then
+  log "INFO" "Uruchamianie monitorowania zużycia zasobów (w tle)..."
+  monitor_resources 5 300 &
+fi
+
+if [ "$GENERATE_REPORT" = true ]; then
+  generate_system_report
+fi
+
+if [ "$CLEANUP_IMAGES" = true ]; then
+  cleanup_docker_images
+fi
+
+log "INFO" "Aby zatrzymać, użyj: ./stop.sh"
+log "INFO" "Informacja o cache: Paczki Pythona są przechowywane w wolumenach Docker:"
+log "INFO" "- coboarding-pip-cache: główny cache pip"
+log "INFO" "- coboarding-wheel-cache: skompilowane pakiety Python"
+log "INFO" "- coboarding-models-cache: pobrane modele LLM"
+log "INFO" "- coboarding-chrome-cache: cache przeglądarki Chrome"
+log "INFO" "Dzięki temu kolejne uruchomienia będą znacznie szybsze."
+log "INFO" "Optymalizacje: Kwantyzacja int8, limity pamięci, cacheowanie paczek, zapisywanie obrazów Docker"
+log "INFO" "Logi zostały zapisane w pliku: ./coboarding-min.log"
+
+# Wyświetlanie czasu wykonania skryptu
+END_TIME=$(date +%s)
+EXECUTION_TIME=$((END_TIME - START_TIME))
+log "INFO" "Czas wykonania skryptu: ${EXECUTION_TIME}s"
