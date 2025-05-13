@@ -5,15 +5,21 @@ services:
     build:
       context: ./containers/llm-orchestrator-min
       args:
+        BUILDKIT_INLINE_CACHE: 1
+      cache_from:
+        - llm-orchestrator-min:latest
     container_name: llm-orchestrator-min
     volumes:
       - ./volumes/models:/app/models
       - ./volumes/config:/app/config
       - pip-cache:/root/.cache/pip
+      - models-cache:/app/models/tinyllama
+      - wheel-cache:/root/.cache/pip/wheels
     environment:
       - USE_INT8=true
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=production
+      - PIP_CACHE_DIR=/root/.cache/pip
     deploy:
       resources:
         limits:
@@ -30,13 +36,19 @@ services:
     build:
       context: ./containers/browser-service
       args:
+        BUILDKIT_INLINE_CACHE: 1
+      cache_from:
+        - browser-service:latest
     container_name: browser-service
     volumes:
       - ./volumes/recordings:/app/recordings
       - pip-cache:/root/.cache/pip
+      - wheel-cache:/root/.cache/pip/wheels
+      - chrome-cache:/root/.cache/google-chrome
     environment:
       - DISPLAY=:99
       - PYTHONUNBUFFERED=1
+      - PIP_CACHE_DIR=/root/.cache/pip
     deploy:
       resources:
         limits:
@@ -51,6 +63,9 @@ services:
     build:
       context: ./containers/novnc
       args:
+        BUILDKIT_INLINE_CACHE: 1
+      cache_from:
+        - novnc:latest
     container_name: novnc
     deploy:
       resources:
@@ -71,3 +86,9 @@ networks:
 volumes:
   pip-cache:
     name: coboarding-pip-cache
+  wheel-cache:
+    name: coboarding-wheel-cache
+  models-cache:
+    name: coboarding-models-cache
+  chrome-cache:
+    name: coboarding-chrome-cache
