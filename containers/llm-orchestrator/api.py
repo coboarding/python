@@ -4,6 +4,10 @@
 from flask import Flask, request, jsonify
 import requests
 
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({"message": "LLM Orchestrator API"}), 200
+
 app = Flask(__name__)
 
 @app.route('/health', methods=['GET'])
