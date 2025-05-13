@@ -1,9 +1,55 @@
 # coBoarding
 
+![Diagram architektury](docs/architecture.png)
+*Schemat architektury systemu coBoarding – mikroserwisy, komunikacja przez Docker, web UI*
+
 coBoarding to kompleksowy, kontenerowy system do automatycznego wypełniania formularzy rekrutacyjnych, kładący nacisk na prywatność, elastyczność oraz wsparcie wielojęzyczne.
 
+---
+
+## Szybki start
+
+### Wymagania wstępne
+- Python 3.11+ lub 3.12
+- Docker i Docker Compose v2
+
+### Pierwsze uruchomienie
+
+```bash
+git clone https://github.com/coboarding/python.git
+cd python
+bash install.sh  # automatyczna instalacja zależności i Docker Compose v2
+bash run.sh      # lub ./run.ps1 na Windows
+```
+
+Pierwsze uruchomienie automatycznie skonfiguruje środowisko (venv, zależności, kontenery, Docker Compose v2).
+
+> **WAŻNE:** Projekt wymaga Docker Compose v2 (polecenie `docker compose`). Skrypt `install.sh` instaluje go automatycznie jako plugin CLI.
+
+---
+
+## Jak to działa
+
+coBoarding automatyzuje proces aplikowania na portale pracy:
+1. **Wykrywa sprzęt** i dobiera model LLM
+2. **Konfiguruje środowisko** (Docker, Python, cache pip)
+3. **Uruchamia Web UI** (HTTPS, obsługa głosowa, noVNC)
+4. **Wykrywa język formularza** (PL, DE, EN)
+5. **Integruje się z menedżerami haseł** (Bitwarden/PassBolt)
+6. **Generuje pipeline** do wypełnienia formularza
+7. **Testuje i wizualizuje** proces przez noVNC
+
+System działa na architekturze mikroserwisowej (browser-service, llm-orchestrator, web-interface, novnc), komunikujących się przez sieć Docker.
+
+## Przykłady zastosowań
+- Automatyczne wypełnianie formularzy rekrutacyjnych (LinkedIn, Pracuj.pl, StepStone, Indeed)
+- Masowe aplikowanie na wiele ogłoszeń z zachowaniem prywatności
+- Wsparcie dla osób z niepełnosprawnościami (obsługa głosowa)
+- Integracja z własnym ATS
+- Testowanie formularzy webowych
+
 ## Główne cechy
-- Architektura oparta na Docker (moduły: browser-service, llm-orchestrator, novnc, web-interface)
+- Architektura oparta na Docker (browser-service, llm-orchestrator, novnc, web-interface)
 - 100% lokalne przetwarzanie danych (prywatność)
 - Wykrywanie sprzętu (GPU/CPU, RAM) i automatyczny dobór modelu LLM
 - Wielojęzyczność (PL, DE, EN) z automatyczną detekcją
@@ -21,147 +67,6 @@ coBoarding to kompleksowy, kontenerowy system do automatycznego wypełniania for
 - [Scenariusze testowe](#scenariusze-testowe)
 - [FAQ](#faq)
 - [Kontakt i wsparcie](#kontakt-i-wsparcie)
-
-## Szybki start
-
-```bash
-git clone https://github.com/coboarding/coboarding.git
-cd coBoarding
-bash install.sh  # automatyczna instalacja zależności i Docker Compose v2
-bash run.sh      # lub ./run.ps1 na Windows
-```
-
-Pierwsze uruchomienie automatycznie skonfiguruje środowisko (venv, zależności, kontenery, Docker Compose v2).
-
-> **WAŻNE:** Projekt wymaga Docker Compose v2 (polecenie `docker compose`). Skrypt `install.sh` instaluje go automatycznie jako plugin CLI.
-
-## Cache pip w Docker
-
-Wszystkie kontenery pythonowe korzystają z cache pip zamontowanego jako volume:
-
-```yaml
-volumes:
-  - ~/.cache/pip:/root/.cache/pip
-```
-
-Dzięki temu, podczas budowania obrazu, pip używa lokalnego cache i nie pobiera ponownie tych samych pakietów z internetu, co znacząco przyspiesza development oraz CI/CD.
-
-> **Uwaga:** Flaga `--no-cache-dir` NIE jest używana w poleceniach pip w Dockerfile – cache jest zawsze wykorzystywany.
-
-**Czyszczenie cache pip lokalnie:**
-
-Jeśli chcesz wyczyścić lokalny cache pip (np. w przypadku problemów z zależnościami lub braku miejsca na dysku):
-
-```bash
-rm -rf ~/.cache/pip
-```
-
-Cache zostanie odbudowany automatycznie przy następnym budowaniu obrazu.
-
-## Optymalizacja buildów Docker – pliki .dockerignore
-
-Każdy katalog z Dockerfile powinien zawierać plik `.dockerignore`, który określa, jakie pliki i katalogi nie powinny być kopiowane do kontekstu budowy obrazu.
-
-Przykładowa zawartość `.dockerignore`:
-```
-.git
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-*.db
-*.sqlite3
-*.log
-*.md
-tests/
-test-examples/
-data/
-model-configs/
-node_modules/
-.env
-*.egg-info
-```
-
-**Dlaczego to ważne?**
-- Szybszy build (Docker nie kopiuje niepotrzebnych plików)
-- Mniejszy rozmiar obrazu
-- Efektywniejsze cache warstw
-
-**Instrukcja:**
-- Jeśli dodajesz nowy katalog z Dockerfile, skopiuj powyższy `.dockerignore` lub dostosuj go do swoich potrzeb.
-- Możesz edytować istniejący `.dockerignore`, aby ignorować dodatkowe pliki specyficzne dla danego serwisu.
-
-## Testowanie poprawności plików deklaratywnych
-
-W repozytorium znajduje się skrypt:
-
-```bash
-./test-declarative.sh
-```
-
-Sprawdza on poprawność wszystkich plików YAML/YML, Dockerfile (lint/hadolint) oraz JSON w projekcie. Zalecane uruchamianie przed commitem większych zmian w konfiguracji.
-
-## Testowanie usług i E2E
-
-### Testowanie pojedynczych serwisów Docker
-
-Każdy serwis możesz przetestować osobno w izolowanym środowisku:
-
-```bash
-bash containers/test-service.sh <nazwa-serwisu>
-```
-Np. dla llm-orchestrator:
-```bash
-bash containers/test-service.sh llm-orchestrator
-```
-
-Wymagane są pliki `docker-compose.<service>.yml` (generowane automatycznie dla głównych usług). Skrypt:
-- Buduje i uruchamia środowisko tylko dla wybranego serwisu
-- Sprawdza, czy kontener działa
-- (Opcjonalnie) wykonuje healthcheck HTTP
-- Wyświetla logi i zatrzymuje środowisko
-
-### Automatyczne testy wszystkich usług
-
-Aby przetestować wszystkie główne serwisy po kolei (z Ansible healthcheck):
-
-```bash
-bash dev.sh
-```
-
-Skrypt:
-- Uruchamia test-service.sh dla każdego serwisu
-- Po każdym teście uruchamia testy E2E Ansible dla danego endpointu
-- Zatrzymuje środowisko po każdym teście
-
-### Testy E2E Ansible
-
-W katalogu `infra/ansible/` znajduje się playbook `playbook.yml`, który sprawdza healthchecki HTTP kluczowych usług. Możesz uruchomić go ręcznie:
-
-```bash
-ansible-playbook infra/ansible/playbook.yml --extra-vars "endpoints=[{name:'llm-orchestrator',url:'http://localhost:5000/health',status:200}]"
-```
-
-## Rozwiązywanie problemów z uruchomieniem kontenerów
-
-- Jeśli kontener natychmiast się wyłącza:
-  - Uruchom go na pierwszym planie, by zobaczyć błąd:
-    ```bash
-    docker-compose -f docker-compose.<service>.yml up
-    ```
-  - Sprawdź, czy wszystkie wymagane pliki istnieją (np. requirements.txt, api.py, katalogi data/, model-configs/)
-  - Sprawdź logi kontenera:
-    ```bash
-    docker-compose -f docker-compose.<service>.yml logs
-    ```
-  - Upewnij się, że port nie jest zajęty przez inną usługę
-  - Sprawdź, czy requirements.txt zawiera wszystkie zależności
-
-## Struktura kontenerów i testów
-- Każdy główny serwis ma własny Dockerfile w `containers/<service>/`
-- Dedykowane pliki `docker-compose.<service>.yml` pozwalają na izolowane testowanie
-- Skrypt `containers/test-service.sh` automatyzuje testowanie pojedynczych usług
-- Skrypt `dev.sh` testuje cały zestaw usług po kolei i uruchamia testy Ansible
 
 ## Instalacja środowiska (Python 3.11+ / 3.12 na Ubuntu 24.10+)
 
@@ -225,7 +130,6 @@ Szczegółowe prompty i pytania weryfikacyjne znajdziesz w pliku `TODO.txt`.
 ## Kontakt i wsparcie
 Projekt open-source. Wszelkie zgłoszenia błędów i propozycje zmian prosimy kierować przez Issues na GitHub.
 
-
 # coBoarding
 
 System do automatycznego wypełniania formularzy internetowych wykorzystujący lokalne modele językowe (LLM) w trzech językach (polski, niemiecki, angielski) bazujący na danych z CV.
@@ -254,8 +158,8 @@ System do automatycznego wypełniania formularzy internetowych wykorzystujący l
 ### 1. Sklonuj repozytorium
 
 ```bash
-git clone https://github.com/coboarding/coboarding.git
-cd coBoarding
+git clone https://github.com/coboarding/python.git
+cd python
 ```
 
 ### 2. Przygotuj CV
@@ -388,8 +292,6 @@ Chętnie przyjmujemy Pull Requesty! Aby przyczynić się do rozwoju projektu:
 3. Zatwierdź zmiany (`git commit -m 'Add amazing feature'`)
 4. Wypchnij branch (`git push origin feature/amazing-feature`)
 5. Otwórz Pull Request
-
-
 
 # Struktura projektu coBoarding
 
