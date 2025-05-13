@@ -14,9 +14,7 @@ just_the_docs:
 # Navigation menu for documentation (visible on GitHub Pages)
 # To add more docs, add them to the 'nav' list
 nav:
-  - Home: README.md
-  - Quick Start: README.md#szybki-start
-  - Containers: README.md#struktura-kontenerów
-  - Tests: README.md#scenariusze-testowe
-  - Troubleshooting: README.md#faq
-  - Contact: README.md#kontakt-i-wsparcie
+  - title: "Dla użytkownika"
+    url: "/docs/user/"
+  - title: "Dla developera"
+    url: "/docs/dev/"
