@@ -1,3 +1,6 @@
+# coBoarding
+
+```mermaid
 flowchart TD
     U[Użytkownik] -->|Web UI| WI(Web Interface)
     WI -->|Sterowanie| BS(Browser Service)
