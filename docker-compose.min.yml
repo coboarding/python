@@ -5,7 +5,6 @@ services:
     build:
       context: ./containers/llm-orchestrator-min
       args:
-        - BUILDKIT_INLINE_CACHE=1
     container_name: llm-orchestrator-min
     volumes:
       - ./volumes/models:/app/models
@@ -31,7 +30,6 @@ services:
     build:
       context: ./containers/browser-service
       args:
-        - BUILDKIT_INLINE_CACHE=1
     container_name: browser-service
     volumes:
       - ./volumes/recordings:/app/recordings
@@ -53,7 +51,6 @@ services:
     build:
       context: ./containers/novnc
       args:
-        - BUILDKIT_INLINE_CACHE=1
     container_name: novnc
     deploy:
       resources:

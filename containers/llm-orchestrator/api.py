@@ -3,8 +3,41 @@
 
 from flask import Flask, request, jsonify
 import requests
+from email_utils import get_latest_token_from_email
 
 app = Flask(__name__)
+
+@app.route('/get-email-token', methods=['POST'])
+def get_email_token():
+    """
+    Pobiera najnowszy token (np. kod 2FA) ze skrzynki email.
+    Wymaga JSON z polami: imap_server, email_user, email_pass, optional: mailbox, search_subject, token_regex
+    """
+    data = request.json
+    imap_server = data.get('imap_server')
+    email_user = data.get('email_user')
+    email_pass = data.get('email_pass')
+    mailbox = data.get('mailbox', 'INBOX')
+    search_subject = data.get('search_subject')
+    token_regex = data.get('token_regex', r'\\b\d{6}\\b')
+    if not (imap_server and email_user and email_pass):
+        return jsonify({"error": "Brak wymaganych pól: imap_server, email_user, email_pass"}), 400
+    try:
+        token = get_latest_token_from_email(
+            imap_server=imap_server,
+            email_user=email_user,
+            email_pass=email_pass,
+            mailbox=mailbox,
+            search_subject=search_subject,
+            token_regex=token_regex
+        )
+        if token:
+            return jsonify({"token": token})
+        else:
+            return jsonify({"error": "Nie znaleziono tokenu."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # --- Lazy loading przykładowego modelu transformers ---
 from transformers import AutoModelForCausalLM, AutoTokenizer
