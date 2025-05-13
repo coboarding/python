@@ -27,10 +27,13 @@ coBoarding to kompleksowy, kontenerowy system do automatycznego wypełniania for
 ```bash
 git clone https://github.com/coboarding/coboarding.git
 cd coBoarding
-bash run.sh  # lub ./run.ps1 na Windows
+bash install.sh  # automatyczna instalacja zależności i Docker Compose v2
+bash run.sh      # lub ./run.ps1 na Windows
 ```
 
-Pierwsze uruchomienie automatycznie skonfiguruje środowisko (venv, zależności, kontenery).
+Pierwsze uruchomienie automatycznie skonfiguruje środowisko (venv, zależności, kontenery, Docker Compose v2).
+
+> **WAŻNE:** Projekt wymaga Docker Compose v2 (polecenie `docker compose`). Skrypt `install.sh` instaluje go automatycznie jako plugin CLI.
 
 ## Instalacja środowiska (Python 3.11+ / 3.12 na Ubuntu 24.10+)
 
@@ -55,7 +58,12 @@ pip install -r requirements.txt
 
 Możesz także użyć skryptu:
 ```bash
-bash install.sh
+bash install.sh  # automatyczna instalacja Docker Compose v2 (plugin CLI)
+```
+
+Po instalacji Compose v2 dostępne będzie jako polecenie:
+```bash
+docker compose version
 ```
 
 > **Uwaga dot. PyAudio i Python 3.12:**
@@ -208,6 +216,17 @@ System można uruchomić w trzech trybach:
 
 3. **Problem:** Model LLM nie jest pobierany automatycznie
    **Rozwiązanie:** Pobierz model ręcznie i umieść go w katalogu `models/`
+
+## Szczegółowe logowanie i debugowanie
+
+W plikach Dockerfile, `install.sh` oraz `run.sh` zostały dodane szczegółowe komunikaty [DEBUG] oraz [INFO].
+
+- Każdy kluczowy etap instalacji, budowy obrazu i uruchamiania usług jest logowany.
+- Logi pomagają szybko zlokalizować miejsce, gdzie wystąpił problem.
+- W terminalu zobaczysz wyraźne komunikaty o postępie i ewentualnych błędach.
+
+**Wskazówka:**
+Jeśli coś pójdzie nie tak, sprawdź logi [DEBUG] w konsoli — wskażą, na którym etapie pojawił się problem.
 
 ## Jak to działa
 

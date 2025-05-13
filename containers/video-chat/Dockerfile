@@ -34,6 +34,8 @@ RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 # Budowa aplikacji
 RUN npm run build
 
+RUN ls -l /app/src
+
 # Ekspozycja portu HTTPS
 EXPOSE 443
 

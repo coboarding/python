@@ -1,6 +1,11 @@
 # Main API entry point for LLM Orchestrator
 # llm-orchestrator/api.py (fragment)
 
+from flask import Flask, request, jsonify
+import requests
+
+app = Flask(__name__)
+
 @app.route('/fill-form', methods=['POST'])
 def fill_form():
     """Endpoint do wypełniania formularzy (używany przez testy)"""
