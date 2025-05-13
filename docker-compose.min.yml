@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  llm-orchestrator-min:
+    build:
+      context: ./containers/llm-orchestrator-min
+    container_name: llm-orchestrator-min
+    volumes:
+      - ./volumes/models:/app/models
+      - ./volumes/config:/app/config
+      - pip-cache:/root/.cache/pip
+    ports:
+      - "5000:5000"  # API LLM
+    networks:
+      - autoformfiller-min-network
+
+  browser-service:
+    build:
+      context: ./containers/browser-service
+    container_name: browser-service
+    volumes:
+      - ./volumes/recordings:/app/recordings
+      - pip-cache:/root/.cache/pip
+    environment:
+      - DISPLAY=:99
+    ports:
+      - "5900:5900"  # VNC
+    networks:
+      - autoformfiller-min-network
+
+  novnc:
+    build:
+      context: ./containers/novnc
+    container_name: novnc
+    ports:
+      - "8080:8080"  # noVNC Web UI
+    networks:
+      - autoformfiller-min-network
+    depends_on:
+      - browser-service
+
+networks:
+  autoformfiller-min-network:
+    driver: bridge
+
+volumes:
+  pip-cache:
+    name: coboarding-pip-cache
