@@ -4,6 +4,7 @@
 # Set theme (minimal is simple and works well with navigation)
 theme: just-the-docs
 mermaid: true
+favicon: "/docs/favicon.svg"
 
 # Navigation menu for documentation (visible on GitHub Pages)
 # To add more docs, add them to the 'nav' list
