@@ -13,12 +13,13 @@ WORKDIR /app
 
 # Kopiowanie plików requirements i instalacja zależności
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+VOLUME /root/.cache/pip
+RUN pip install --cache-dir=/root/.cache/pip -r requirements.txt
 
 # Kopiowanie pozostałych plików aplikacji
-COPY api.py .
-COPY detect-hardware.py .
-COPY pipeline_generator.py .
+COPY api.py ./
+COPY detect-hardware.py ./
+COPY pipeline_generator.py ./
 COPY model-configs/ ./model-configs/
 COPY data/ ./data/
 
@@ -26,9 +27,6 @@ COPY data/ ./data/
 RUN mkdir -p /app/models /app/config
 RUN mkdir -p /app/model-configs /app/data
 
-# Kopiowanie plików model-configs i data jeśli istnieją
-COPY model-configs/ ./model-configs/ || true
-COPY data/ ./data/ || true
 
 # Ekspozycja portu API
 EXPOSE 5000

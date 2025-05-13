@@ -35,6 +35,134 @@ Pierwsze uruchomienie automatycznie skonfiguruje środowisko (venv, zależności
 
 > **WAŻNE:** Projekt wymaga Docker Compose v2 (polecenie `docker compose`). Skrypt `install.sh` instaluje go automatycznie jako plugin CLI.
 
+## Cache pip w Docker
+
+Wszystkie kontenery pythonowe korzystają z cache pip zamontowanego jako volume:
+
+```yaml
+volumes:
+  - ~/.cache/pip:/root/.cache/pip
+```
+
+Dzięki temu, podczas budowania obrazu, pip używa lokalnego cache i nie pobiera ponownie tych samych pakietów z internetu, co znacząco przyspiesza development oraz CI/CD.
+
+> **Uwaga:** Flaga `--no-cache-dir` NIE jest używana w poleceniach pip w Dockerfile – cache jest zawsze wykorzystywany.
+
+**Czyszczenie cache pip lokalnie:**
+
+Jeśli chcesz wyczyścić lokalny cache pip (np. w przypadku problemów z zależnościami lub braku miejsca na dysku):
+
+```bash
+rm -rf ~/.cache/pip
+```
+
+Cache zostanie odbudowany automatycznie przy następnym budowaniu obrazu.
+
+## Optymalizacja buildów Docker – pliki .dockerignore
+
+Każdy katalog z Dockerfile powinien zawierać plik `.dockerignore`, który określa, jakie pliki i katalogi nie powinny być kopiowane do kontekstu budowy obrazu.
+
+Przykładowa zawartość `.dockerignore`:
+```
+.git
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.log
+*.md
+tests/
+test-examples/
+data/
+model-configs/
+node_modules/
+.env
+*.egg-info
+```
+
+**Dlaczego to ważne?**
+- Szybszy build (Docker nie kopiuje niepotrzebnych plików)
+- Mniejszy rozmiar obrazu
+- Efektywniejsze cache warstw
+
+**Instrukcja:**
+- Jeśli dodajesz nowy katalog z Dockerfile, skopiuj powyższy `.dockerignore` lub dostosuj go do swoich potrzeb.
+- Możesz edytować istniejący `.dockerignore`, aby ignorować dodatkowe pliki specyficzne dla danego serwisu.
+
+## Testowanie poprawności plików deklaratywnych
+
+W repozytorium znajduje się skrypt:
+
+```bash
+./test-declarative.sh
+```
+
+Sprawdza on poprawność wszystkich plików YAML/YML, Dockerfile (lint/hadolint) oraz JSON w projekcie. Zalecane uruchamianie przed commitem większych zmian w konfiguracji.
+
+## Testowanie usług i E2E
+
+### Testowanie pojedynczych serwisów Docker
+
+Każdy serwis możesz przetestować osobno w izolowanym środowisku:
+
+```bash
+bash containers/test-service.sh <nazwa-serwisu>
+```
+Np. dla llm-orchestrator:
+```bash
+bash containers/test-service.sh llm-orchestrator
+```
+
+Wymagane są pliki `docker-compose.<service>.yml` (generowane automatycznie dla głównych usług). Skrypt:
+- Buduje i uruchamia środowisko tylko dla wybranego serwisu
+- Sprawdza, czy kontener działa
+- (Opcjonalnie) wykonuje healthcheck HTTP
+- Wyświetla logi i zatrzymuje środowisko
+
+### Automatyczne testy wszystkich usług
+
+Aby przetestować wszystkie główne serwisy po kolei (z Ansible healthcheck):
+
+```bash
+bash dev.sh
+```
+
+Skrypt:
+- Uruchamia test-service.sh dla każdego serwisu
+- Po każdym teście uruchamia testy E2E Ansible dla danego endpointu
+- Zatrzymuje środowisko po każdym teście
+
+### Testy E2E Ansible
+
+W katalogu `infra/ansible/` znajduje się playbook `playbook.yml`, który sprawdza healthchecki HTTP kluczowych usług. Możesz uruchomić go ręcznie:
+
+```bash
+ansible-playbook infra/ansible/playbook.yml --extra-vars "endpoints=[{name:'llm-orchestrator',url:'http://localhost:5000/health',status:200}]"
+```
+
+## Rozwiązywanie problemów z uruchomieniem kontenerów
+
+- Jeśli kontener natychmiast się wyłącza:
+  - Uruchom go na pierwszym planie, by zobaczyć błąd:
+    ```bash
+    docker-compose -f docker-compose.<service>.yml up
+    ```
+  - Sprawdź, czy wszystkie wymagane pliki istnieją (np. requirements.txt, api.py, katalogi data/, model-configs/)
+  - Sprawdź logi kontenera:
+    ```bash
+    docker-compose -f docker-compose.<service>.yml logs
+    ```
+  - Upewnij się, że port nie jest zajęty przez inną usługę
+  - Sprawdź, czy requirements.txt zawiera wszystkie zależności
+
+## Struktura kontenerów i testów
+- Każdy główny serwis ma własny Dockerfile w `containers/<service>/`
+- Dedykowane pliki `docker-compose.<service>.yml` pozwalają na izolowane testowanie
+- Skrypt `containers/test-service.sh` automatyzuje testowanie pojedynczych usług
+- Skrypt `dev.sh` testuje cały zestaw usług po kolei i uruchamia testy Ansible
+
 ## Instalacja środowiska (Python 3.11+ / 3.12 na Ubuntu 24.10+)
 
 Aby uniknąć problemów z kompatybilnością (np. PyAudio vs Python 3.12), zalecane jest użycie Pythona 3.11. **Na Ubuntu 24.10+ dostępny jest tylko Python 3.12 – patrz uwaga poniżej!**

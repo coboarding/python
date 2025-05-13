@@ -5,6 +5,8 @@ services:
       context: ./containers/web-terminal
     ports:
       - "8081:8081"
+    volumes:
+      - ~/.cache/pip:/root/.cache/pip
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/"]
       interval: 10s

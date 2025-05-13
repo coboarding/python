@@ -18,7 +18,8 @@ COPY requirements.txt .
 COPY app.py .
 
 # Instalacja zależności Pythona
-RUN pip install --no-cache-dir -r requirements.txt
+VOLUME /root/.cache/pip
+RUN pip install --cache-dir=/root/.cache/pip -r requirements.txt
 
 # Udostępnienie portu
 EXPOSE 6000

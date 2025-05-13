@@ -23,8 +23,6 @@ RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/novnc \
 # Tworzenie dowiązania symbolicznego do vnc.html
 RUN ln -sf /opt/novnc/vnc.html /opt/novnc/index.html
 
-# Instalacja websockify
-RUN pip3 install --no-cache-dir websockify
 
 # Kopiowanie konfiguracji Nginx z HTTPS
 COPY nginx.conf /etc/nginx/conf.d/default.conf

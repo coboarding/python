@@ -5,6 +5,8 @@ services:
       context: ./containers/novnc
     ports:
       - "6080:6080"
+    volumes:
+      - ~/.cache/pip:/root/.cache/pip
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:6080/"]
       interval: 10s

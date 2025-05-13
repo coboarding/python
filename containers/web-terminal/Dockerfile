@@ -20,13 +20,8 @@ RUN apk add --no-cache \
     python3-dev
 
 # Instalacja zależności Python
-RUN pip3 install --no-cache-dir \
-    rich \
-    requests \
-    colorama \
-    tabulate \
-    pyfiglet \
-    argcomplete
+VOLUME /root/.cache/pip
+RUN pip3 install --cache-dir=/root/.cache/pip rich requests colorama tabulate pyfiglet argcomplete
 
 # Kopiowanie skryptu startowego
 COPY startup.sh /usr/local/bin/startup.sh

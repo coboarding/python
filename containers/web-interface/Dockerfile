@@ -18,6 +18,7 @@ COPY --from=build /app/build /usr/share/nginx/html
 # Katalogi na certyfikaty
 RUN mkdir -p /etc/nginx/ssl
 
+
 # Tworzenie samopodpisanego certyfikatu dla rozwoju
 RUN apk add --no-cache openssl && \
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \

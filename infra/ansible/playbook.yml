@@ -19,10 +19,10 @@
         timeout: 5
       register: result
       failed_when: result.status != item.status
-      with_items: "{{ endpoints }}"
+      loop: "{{ endpoints | list }}"
       ignore_errors: false
 
     - name: Print healthcheck results
       ansible.builtin.debug:
         msg: "Service {{ item.item.name }}: status={{ item.status }} url={{ item.item.url }}"
-      with_items: "{{ result.results }}"
+      loop: "{{ result.results | list }}"

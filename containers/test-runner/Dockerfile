@@ -21,10 +21,10 @@ WORKDIR /app
 
 # Kopiowanie requirements i instalacja zależności
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+VOLUME /root/.cache/pip
+RUN pip install --cache-dir=/root/.cache/pip -r requirements.txt
 
-# Kopiowanie skryptów testowych
-COPY tests/ /app/tests/
+# (Pominięto kopiowanie testów - katalog nie istnieje w kontekście budowania)
 
 # Ustawienie zmiennych środowiskowych
 ENV PYTHONUNBUFFERED=1

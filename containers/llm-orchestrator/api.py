@@ -6,6 +6,10 @@ import requests
 
 app = Flask(__name__)
 
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({"status": "ok"}), 200
+
 @app.route('/fill-form', methods=['POST'])
 def fill_form():
     """Endpoint do wypełniania formularzy (używany przez testy)"""
@@ -49,6 +53,9 @@ def fill_form():
             "status": "error",
             "message": f"Wystąpił błąd: {str(e)}"
         }), 500
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
 
 
 

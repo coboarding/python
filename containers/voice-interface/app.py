@@ -13,6 +13,10 @@ app = Flask(__name__)
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
 
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({"status": "ok", "service": "voice-interface"}), 200
+
 # Podstawowe komendy głosowe i ich mapowanie na funkcje
 VOICE_COMMANDS = {
     "wypełnij formularz": "fill_form",

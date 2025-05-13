@@ -41,8 +41,7 @@ VOICE_COMMANDS = {
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Endpoint sprawdzający zdrowie serwisu"""
-    return jsonify({"status": "healthy", "service": "web-voice-api"})
+    return jsonify({"status": "ok", "service": "web-voice-api"}), 200
 
 
 @app.route('/process-audio', methods=['POST'])

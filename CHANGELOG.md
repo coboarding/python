@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.14] - 2025-05-13
+
+### Added
+- Changes in README.md
+- Changes in containers/browser-service/Dockerfile
+- Changes in containers/browser-service/requirements.txt
+- Changes in containers/browser-service/scripts/form-fill.py
+- Changes in containers/browser-service/supervisord.conf
+- Changes in containers/llm-orchestrator/.dockerignore
+- Changes in containers/llm-orchestrator/Dockerfile
+- Changes in containers/llm-orchestrator/api.py
+- Changes in containers/novnc/Dockerfile
+- Changes in containers/test-runner/Dockerfile
+- Changes in containers/video-chat/Dockerfile
+- Changes in containers/voice-interface/Dockerfile
+- Changes in containers/voice-interface/app.py
+- Changes in containers/web-interface/Dockerfile
+- Changes in containers/web-terminal/Dockerfile
+- Changes in containers/web-voice-api/Dockerfile
+- Changes in containers/web-voice-api/app.py
+- Changes in dev.sh
+- Changes in docker-compose.browser-service.yml
+- Changes in docker-compose.llm-orchestrator.yml
+- Changes in docker-compose.novnc.yml
+- Changes in docker-compose.video-chat.yml
+- Changes in docker-compose.web-interface.yml
+- Changes in docker-compose.web-terminal.yml
+- Changes in infra/ansible/playbook.yml
+- Changes in pyproject.toml
+- Changes in setup.py
+
 ## [0.1.13] - 2025-05-13
 
 ### Added

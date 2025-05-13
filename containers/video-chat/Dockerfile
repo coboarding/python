@@ -20,7 +20,9 @@ RUN npm install
 
 # Instalacja zależności Python dla integracji z TTS/STT
 COPY requirements.txt ./
-RUN pip3 install --no-cache-dir -r requirements.txt
+VOLUME /root/.cache/pip
+VOLUME /root/.cache/pip
+RUN pip install --cache-dir=/root/.cache/pip -r requirements.txt
 
 # Kopiowanie kodu źródłowego
 COPY . .

@@ -7,6 +7,8 @@ services:
       - "8080:80"
     environment:
       - NODE_ENV=production
+    volumes:
+      - ~/.cache/pip:/root/.cache/pip
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/"]
       interval: 10s

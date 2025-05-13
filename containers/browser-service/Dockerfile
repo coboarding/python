@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     unzip \
     && rm -rf /var/lib/apt/lists/*
+VOLUME /root/.cache/pip
 
 # Install Chrome (new way to add the key)
 RUN set -eux; \
@@ -139,8 +140,9 @@ RUN echo '[DEBUG] Copied supervisord.conf configuration file.'
 
 # Install Python dependencies
 COPY requirements.txt /app/
+VOLUME /root/.cache/pip
 RUN echo '[DEBUG] Installing Python dependencies...'; \
-    pip3 install --no-cache-dir -r /app/requirements.txt; \
+    pip3 install --cache-dir=/root/.cache/pip -r /app/requirements.txt; \
     echo '[DEBUG] Python dependencies installation completed.'
 
 # Configure TigerVNC

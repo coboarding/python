@@ -7,6 +7,8 @@ services:
       - "8443:443"
     environment:
       - NODE_ENV=production
+    volumes:
+      - ~/.cache/pip:/root/.cache/pip
     healthcheck:
       test: ["CMD", "curl", "-f", "https://localhost:443/", "--insecure"]
       interval: 10s
