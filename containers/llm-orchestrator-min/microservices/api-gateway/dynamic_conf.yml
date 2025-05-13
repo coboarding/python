@@ -1,0 +1,84 @@
+## Traefik Dynamic Configuration
+
+# Konfiguracja HTTP
+http:
+  # Middlewares
+  middlewares:
+    # Rate limiting
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+    
+    # Retry
+    retry-middleware:
+      retry:
+        attempts: 3
+        initialInterval: "500ms"
+    
+    # Compression
+    compress-middleware:
+      compress: {}
+    
+    # CORS
+    cors-middleware:
+      cors:
+        allowOriginList:
+          - "*"
+        allowHeaders:
+          - "*"
+        allowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+  
+  # Routery
+  routers:
+    # Router dla modelu
+    model-router:
+      rule: "PathPrefix(`/api/model`)"
+      service: model-service
+      middlewares:
+        - rate-limit
+        - retry-middleware
+        - compress-middleware
+        - cors-middleware
+    
+    # Router dla cache
+    cache-router:
+      rule: "PathPrefix(`/api/cache`)"
+      service: cache-service
+      middlewares:
+        - rate-limit
+        - retry-middleware
+        - compress-middleware
+    
+    # Router dla monitoringu
+    monitoring-router:
+      rule: "PathPrefix(`/api/monitoring`)"
+      service: monitoring-service
+  
+  # Usługi
+  services:
+    # Usługa modelu
+    model-service:
+      loadBalancer:
+        servers:
+          - url: "http://model-service:5000"
+        passHostHeader: true
+    
+    # Usługa cache
+    cache-service:
+      loadBalancer:
+        servers:
+          - url: "http://cache-service:5000"
+        passHostHeader: true
+    
+    # Usługa monitoringu
+    monitoring-service:
+      loadBalancer:
+        servers:
+          - url: "http://monitoring-service:5000"
+        passHostHeader: true
