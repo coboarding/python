@@ -4,6 +4,35 @@
 from flask import Flask, request, jsonify
 import requests
 
+# --- Lazy loading przykładowego modelu transformers ---
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+model = None
+tokenizer = None
+
+MODEL_NAME = "distilgpt2"  # Możesz tu podać dowolny model dostępny publicznie
+
+def get_model():
+    global model, tokenizer
+    if model is None or tokenizer is None:
+        model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+        tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    return model, tokenizer
+
+@app.route('/use-llm', methods=['POST'])
+def use_llm():
+    """Przykładowy endpoint wykorzystujący lazy loading modelu LLM"""
+    try:
+        model, tokenizer = get_model()
+        data = request.json
+        prompt = data.get('prompt', "Hello, world!")
+        inputs = tokenizer(prompt, return_tensors="pt")
+        outputs = model.generate(**inputs, max_new_tokens=20)
+        result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return jsonify({"result": result})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/', methods=['GET'])
 def index():
     return jsonify({"message": "LLM Orchestrator API"}), 200
