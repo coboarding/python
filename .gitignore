@@ -1,6 +1,10 @@
 python
 venv-py3.12
 venv-*
+.terraform/providers
+.terraform/providers/*
+.terraform/terraform.tfstate
+.terraform/terraform.tfstate.backup
 ollama
 monitor.pid
 monitor.db
