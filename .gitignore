@@ -1,3 +1,7 @@
+node_modules
+yarn-error.log
+package-lock.json
+yarn.lock
 python
 venv-py3.12
 venv-*
