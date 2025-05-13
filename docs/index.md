@@ -9,6 +9,7 @@
 - [Testy end-to-end](e2e-tests.md)
 - [FAQ](faq.md)
 - [Kontakt](contact.md)
+- [Architektura](architecture.md)
 
 ---
 

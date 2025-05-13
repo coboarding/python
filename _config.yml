@@ -2,7 +2,7 @@
 # This enables navigation menu on GitHub Pages
 
 # Set theme (minimal is simple and works well with navigation)
-theme: jekyll-theme-minimal
+theme: just-the-docs
 mermaid: true
 
 # Navigation menu for documentation (visible on GitHub Pages)
