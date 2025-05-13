@@ -147,7 +147,7 @@ open_browser() {
   fi
 
   # Daj przeglądarce czas na otwarcie
-  sleep 3
+  sleep 1
   return 0
 }
 
@@ -275,6 +275,25 @@ log "INFO" "Nieużywane zasoby Docker wyczyszczone."
 log "INFO" "Usuwanie argumentów BuildKit z docker-compose.min.yml..."
 sed -i '/BUILDKIT_INLINE_CACHE/d' docker-compose.min.yml
 log "SUCCESS" "Argumenty BuildKit usunięte."
+
+# Modyfikacja Dockerfile dla kontenera llm-orchestrator-min, aby usunąć zależności NVIDIA
+log "INFO" "Modyfikacja Dockerfile dla kontenera llm-orchestrator-min, aby usunąć zależności NVIDIA..."
+if [ -f "./containers/llm-orchestrator-min/Dockerfile" ]; then
+    # Usunięcie linii związanych z CUDA i NVIDIA
+    sed -i '/cuda/d' ./containers/llm-orchestrator-min/Dockerfile
+    sed -i '/nvidia/d' ./containers/llm-orchestrator-min/Dockerfile
+    sed -i '/GPU/d' ./containers/llm-orchestrator-min/Dockerfile
+    log "SUCCESS" "Dockerfile zmodyfikowany - usunięto zależności NVIDIA."
+    
+    # Modyfikacja requirements.txt, aby usunąć zależności NVIDIA
+    if [ -f "./containers/llm-orchestrator-min/requirements.txt" ]; then
+        sed -i '/cuda/d' ./containers/llm-orchestrator-min/requirements.txt
+        sed -i '/nvidia/d' ./containers/llm-orchestrator-min/requirements.txt
+        log "SUCCESS" "requirements.txt zmodyfikowany - usunięto zależności NVIDIA."
+    fi
+else
+    log "WARNING" "Nie znaleziono pliku Dockerfile dla kontenera llm-orchestrator-min."
+fi
 
 # Testowanie komponentów przed uruchomieniem
 log "INFO" "Testowanie komponentów przed uruchomieniem..."
@@ -447,13 +466,26 @@ else
   fi
 fi
 
+# Otwieranie zakładek w przeglądarce dla działających usług
+log "INFO" "Otwieranie zakładek w przeglądarce dla działających usług..."
+
 # Otwieranie noVNC w przeglądarce
 if [ "$NOVNC_READY" = true ]; then
   log "INFO" "Otwieranie noVNC w przeglądarce..."
   open_browser "http://localhost:8080/vnc.html?autoconnect=true&password=secret"
-else
-  log "WARNING" "noVNC nie jest dostępne. Nie można otworzyć przeglądarki."
+  sleep 1
 fi
+
+# Otwieranie API LLM w przeglądarce
+if [ "$API_READY" = true ]; then
+  log "INFO" "Otwieranie API LLM w przeglądarce..."
+  open_browser "http://localhost:5000/api/docs"
+  sleep 1
+fi
+
+# Otwieranie strony z dokumentacją w przeglądarce
+log "INFO" "Otwieranie strony z dokumentacją w przeglądarce..."
+open_browser "http://localhost:5000"
 
 log "INFO" "=== coBoarding - Minimalna Wersja uruchomiona ==="
 log "INFO" "noVNC dostępny pod adresem: http://localhost:8080/vnc.html?autoconnect=true&password=secret"
@@ -472,7 +504,7 @@ else
   log "WARNING" "Sprawdź logi, aby uzyskać więcej informacji."
 fi
 
-log "INFO" "Aby zatrzymać, użyj: docker-compose -f docker-compose.min.yml down"
+log "INFO" "Aby zatrzymać, użyj: ./stop.sh"
 log "INFO" "Informacja o cache: Paczki Pythona są przechowywane w wolumenie Docker 'coboarding-pip-cache'"
 log "INFO" "Dzięki temu kolejne uruchomienia będą znacznie szybsze."
 log "INFO" "Optymalizacje: Kwantyzacja int8, limity pamięci, cacheowanie paczek"

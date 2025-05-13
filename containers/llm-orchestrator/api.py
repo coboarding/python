@@ -4,6 +4,9 @@
 from flask import Flask, request, jsonify
 import requests
 from email_utils import get_latest_token_from_email
+from send_email_utils import send_email_with_attachments
+import sqlite3
+import os
 
 app = Flask(__name__)
 
@@ -87,6 +90,7 @@ def fill_form():
         form_url = data.get('form_url')
         cv_path = data.get('cv_path')
         upload_files = data.get('upload_files', {})
+        notify_email = data.get('notify_email')
 
         # Sprawdź wymagane pola
         if not form_url or not cv_path:
@@ -106,6 +110,20 @@ def fill_form():
             timeout=60
         )
 
+        # Zapisz status do bazy sqlite (podsumowania)
+        save_form_status(form_url, notify_email, response.status_code, response.text)
+
+        # Jeśli podano email, wyślij podsumowanie i ew. załączniki
+        if notify_email:
+            subject = f"Podsumowanie zgłoszenia: {form_url}"
+            body = f"Status: {response.status_code}\nSzczegóły: {response.text}"
+            attachments = [cv_path] if os.path.exists(cv_path) else None
+            try:
+                send_email_with_attachments(notify_email, subject, body, attachments)
+            except Exception as mailerr:
+                # Nie przerywaj procesu, tylko loguj błąd wysyłki maila
+                print(f"Błąd wysyłki email: {mailerr}")
+
         if response.status_code == 200:
             return jsonify({
                 "status": "success",
@@ -122,6 +140,25 @@ def fill_form():
             "status": "error",
             "message": f"Wystąpił błąd: {str(e)}"
         }), 500
+
+def save_form_status(form_url, notify_email, status_code, details):
+    db_path = os.getenv("FORMS_DB_PATH", "form_status.db")
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS form_status (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            form_url TEXT,
+            notify_email TEXT,
+            status_code INTEGER,
+            details TEXT,
+            ts DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    c.execute("INSERT INTO form_status (form_url, notify_email, status_code, details) VALUES (?, ?, ?, ?)",
+              (form_url, notify_email, status_code, details))
+    conn.commit()
+    conn.close()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
