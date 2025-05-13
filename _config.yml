@@ -7,6 +7,10 @@ remote_theme: just-the-docs/just-the-docs
 mermaid: true
 favicon: "/docs/favicon.svg"
 
+just_the_docs:
+  includes:
+    head: "docs/_includes/head_custom.html"
+
 # Navigation menu for documentation (visible on GitHub Pages)
 # To add more docs, add them to the 'nav' list
 nav:
