@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.16] - 2025-05-13
+
+### Added
+- Changes in containers/llm-orchestrator/api.py
+- Changes in pyproject.toml
+- Changes in setup.py
+
 ## [0.1.15] - 2025-05-13
 
 ### Added

@@ -4,6 +4,8 @@
 from flask import Flask, request, jsonify
 import requests
 
+app = Flask(__name__)
+
 # --- Lazy loading przykładowego modelu transformers ---
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
