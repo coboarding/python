@@ -12,6 +12,7 @@ echo -e "${YELLOW}Ta wersja zawiera tylko podstawowe funkcje:${NC}"
 echo -e "- Prosty model LLM działający na CPU (do 2B parametrów)"
 echo -e "- Przeglądarka dostępna przez noVNC"
 echo -e "- Brak menedżerów haseł, pipelines i sterowania głosowego"
+echo -e "- Zoptymalizowane cacheowanie paczek"
 
 # Sprawdzenie czy Docker jest zainstalowany
 if ! command -v docker &> /dev/null; then
@@ -29,7 +30,16 @@ if ! command -v docker-compose &> /dev/null; then
 fi
 
 # Tworzenie katalogów dla wolumenów
+echo -e "${YELLOW}Tworzenie katalogów dla wolumenów...${NC}"
 mkdir -p ./volumes/models ./volumes/config ./volumes/recordings
+
+# Sprawdzenie czy wolumen pip-cache istnieje
+if ! docker volume inspect coboarding-pip-cache &>/dev/null; then
+    echo -e "${YELLOW}Tworzenie wolumenu pip-cache dla optymalizacji cacheowania...${NC}"
+    docker volume create coboarding-pip-cache
+else
+    echo -e "${GREEN}Wolumen pip-cache już istnieje.${NC}"
+fi
 
 # Zatrzymanie istniejących kontenerów, jeśli istnieją
 echo -e "${YELLOW}Zatrzymywanie istniejących kontenerów, jeśli istnieją...${NC}"
@@ -37,6 +47,7 @@ docker-compose -f docker-compose.min.yml down 2>/dev/null
 
 # Budowanie i uruchamianie kontenerów
 echo -e "${GREEN}Budowanie i uruchamianie kontenerów...${NC}"
+echo -e "${YELLOW}Pierwsze uruchomienie może potrwać dłużej, kolejne będą szybsze dzięki cache.${NC}"
 docker-compose -f docker-compose.min.yml up --build -d
 
 # Sprawdzenie statusu kontenerów
@@ -84,3 +95,5 @@ echo -e "${GREEN}=== coBoarding - Minimalna Wersja uruchomiona ===${NC}"
 echo -e "noVNC dostępny pod adresem: http://localhost:8080/vnc.html?autoconnect=true&password=secret"
 echo -e "API LLM dostępne pod adresem: http://localhost:5000"
 echo -e "${YELLOW}Aby zatrzymać, użyj: docker-compose -f docker-compose.min.yml down${NC}"
+echo -e "${GREEN}Informacja o cache:${NC} Paczki Pythona są przechowywane w wolumenie Docker 'coboarding-pip-cache'"
+echo -e "Dzięki temu kolejne uruchomienia będą znacznie szybsze."
