@@ -3,16 +3,10 @@ FROM debian:bullseye-slim
 # Temporarily redirect interactive dialogs during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Ustawienie zmiennych środowiskowych dla pip, aby zoptymalizować cache
-ENV PIP_NO_CACHE_DIR=0 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
+# Ustawienie zmiennych środowiskowych dla pip
+ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_CACHE_DIR=/root/.cache/pip \
     DISPLAY=:99
-
-# Utworzenie katalogów dla cache
-RUN mkdir -p /root/.cache/pip /root/.cache/pip/wheels /root/.cache/google-chrome
 
 # Install dependencies
 RUN apt-get update && apt-get install -y xvfb
@@ -140,7 +134,7 @@ RUN echo '[DEBUG] Creating application directory structure...'; \
 # Copy scripts
 COPY scripts/ /opt/scripts/
 RUN echo '[DEBUG] Setting execution permissions for .sh scripts...'; \
-    chmod +x /opt/scripts/*.sh; \
+    chmod +x /opt/scripts/*.sh || true; \
     echo '[DEBUG] .sh scripts have execution permissions.'
 
 # Copy configuration files
@@ -150,10 +144,9 @@ RUN echo '[DEBUG] Copied supervisord.conf configuration file.'
 # Copy requirements.txt first for better caching
 COPY requirements.txt /app/
 
-# Install Python dependencies with cache
-RUN --mount=type=cache,target=/root/.cache/pip \
-    echo '[DEBUG] Installing Python dependencies...'; \
-    pip3 install --cache-dir=/root/.cache/pip -r /app/requirements.txt; \
+# Install Python dependencies without using BuildKit
+RUN echo '[DEBUG] Installing Python dependencies...'; \
+    pip3 install --no-cache-dir -r /app/requirements.txt; \
     echo '[DEBUG] Python dependencies installation completed.'
 
 # Configure TigerVNC

@@ -1,44 +1,62 @@
-FROM python:3.9-slim
+FROM python:3.9-slim as builder
 
-# Instalacja zależności systemowych
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    git \
-    curl \
-    wget \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-
-# Ustawienie zmiennych środowiskowych dla pip
+# Ustawienie zmiennych środowiskowych
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    # Domyślny port API - można nadpisać przy uruchomieniu kontenera
-    API_PORT=5000 \
-    # Domyślne ustawienia optymalizacji
-    USE_INT8=true
+    PIP_NO_CACHE_DIR=0 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Utworzenie katalogów dla aplikacji
-RUN mkdir -p /app/models /app/config /app/model-configs /app/data
+# Instalacja podstawowych zależności systemowych
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Kopiowanie tylko pliku requirements.txt najpierw, aby lepiej wykorzystać cache
+# Utworzenie katalogu aplikacji
+WORKDIR /app
+
+# Kopiowanie tylko pliku requirements.txt, aby wykorzystać cache Docker
 COPY containers/llm-orchestrator-min/requirements.txt .
 
-# Instalacja zależności bez użycia BuildKit
-RUN pip install --no-cache-dir -r requirements.txt
+# Instalacja zależności Pythona z wykorzystaniem cache
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
+    pip wheel --wheel-dir=/app/wheels -r requirements.txt
 
-# Kopiowanie pozostałych plików aplikacji
+# Druga faza - obraz docelowy
+FROM python:3.9-slim
+
+# Ustawienie zmiennych środowiskowych
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    USE_INT8=true \
+    API_PORT=5000
+
+# Instalacja podstawowych zależności systemowych
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Utworzenie katalogu aplikacji
+WORKDIR /app
+
+# Kopiowanie skompilowanych pakietów z poprzedniej fazy
+COPY --from=builder /app/wheels /app/wheels
+COPY containers/llm-orchestrator-min/requirements.txt .
+
+# Instalacja pakietów z lokalnych plików wheel
+RUN pip install --no-index --find-links=/app/wheels -r requirements.txt && \
+    rm -rf /app/wheels
+
+# Kopiowanie kodu aplikacji
 COPY containers/llm-orchestrator-min/api.py ./
 COPY containers/llm-orchestrator-min/model-configs/ ./model-configs/
 COPY containers/llm-orchestrator-min/data/ ./data/
 
-# Pobieranie małego modelu LLM (TinyLlama-1.1B) tylko jeśli nie istnieje
-# Używamy wolumenu, aby zachować model między uruchomieniami
+# Pobieranie modelu
 ARG MODEL_VERSION=1.0
 RUN mkdir -p /app/models/tinyllama
 
-# Skrypt do sprawdzania i pobierania modelu tylko jeśli jest to konieczne
+# Skrypt do pobierania modelu
 RUN echo '#!/bin/bash \n\
 if [ ! -f /app/models/tinyllama/pytorch_model.bin ]; then \n\
   echo "Pobieranie modelu TinyLlama..." \n\
@@ -52,8 +70,12 @@ else \n\
   echo "Model TinyLlama już istnieje, pomijanie pobierania." \n\
 fi' > /app/download_model.sh && chmod +x /app/download_model.sh
 
-# Ekspozycja portu API - domyślnie 5000, ale można zmienić przez zmienną środowiskową API_PORT
+# Dodanie skryptów diagnostycznych i naprawczych
+COPY containers/llm-orchestrator-min/scripts/ /app/scripts/
+RUN chmod +x /app/scripts/*.sh || echo "No scripts to make executable"
+
+# Ekspozycja portu API
 EXPOSE ${API_PORT}
 
-# Uruchomienie API z wcześniejszym sprawdzeniem modelu
+# Uruchomienie aplikacji
 CMD ["/bin/bash", "-c", "/app/download_model.sh && python -u api.py"]
