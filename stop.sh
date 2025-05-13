@@ -17,6 +17,16 @@ err() {
   echo -e "${RED}[coBoarding]${NC} $1" >&2
 }
 
+log "Zatrzymywanie wszystkich środowisk testowych docker-compose.<service>.yml..."
+SERVICES=(llm-orchestrator browser-service web-interface novnc video-chat web-terminal)
+for SERVICE in "${SERVICES[@]}"; do
+  COMPOSE_FILE="docker-compose.$SERVICE.yml"
+  if [ -f "$COMPOSE_FILE" ]; then
+    log "Zatrzymuję środowisko dla: $SERVICE ($COMPOSE_FILE) ..."
+    docker-compose -f "$COMPOSE_FILE" down || warn "Nie udało się zatrzymać środowiska $SERVICE."
+  fi
+done
+
 log "Zatrzymywanie wszystkich usług docker-compose..."
 docker compose down || docker-compose down || warn "docker-compose down nie powiodło się (brak pliku lub usługi)"
 

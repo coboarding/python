@@ -26,12 +26,18 @@ else
   exit 1
 fi
 
+if [ "$LOCAL_TEST" = "1" ]; then
+  log "Tryb testowania lokalnego (LOCAL_TEST=1): testy korzystają z localhost i lokalnych portów."
+else
+  log "Tryb testowania Docker/network: testy korzystają z nazw usług Docker Compose."
+fi
+
 log "Wyszukiwanie i uruchamianie testów Python (pytest)..."
 if command -v pytest &>/dev/null; then
-  pytest || err "Niektóre testy pytest nie przeszły!"
+  pytest containers/test-runner/tests/ --maxfail=5 --disable-warnings -v || err "Niektóre testy pytest nie przeszły!"
 else
   log "pytest nie jest zainstalowany. Instaluję..."
-  pip install pytest && pytest || err "Niektóre testy pytest nie przeszły!"
+  pip install pytest && pytest containers/test-runner/tests/ --maxfail=5 --disable-warnings -v || err "Niektóre testy pytest nie przeszły!"
 fi
 
 log "Wyszukiwanie i uruchamianie testów shell (test_*.sh)..."

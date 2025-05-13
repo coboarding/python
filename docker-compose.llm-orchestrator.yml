@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  llm-orchestrator:
+    build:
+      context: ./containers/llm-orchestrator
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

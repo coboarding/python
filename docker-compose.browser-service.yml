@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  browser-service:
+    build:
+      context: ./containers/browser-service
+    ports:
+      - "3000:3000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

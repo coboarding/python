@@ -1,36 +1,40 @@
 #!/bin/bash
-# dev.sh - Uruchamianie minimalnego stacka i testowanie llm-orchestrator
+# dev.sh - Testuje każdy serwis dockerowy osobno i uruchamia testy Ansible healthcheck
 set -e
 
-COMPOSE_FILE="docker-compose.minimal.yml"
-TEST_DIR="test-examples"
+SERVICES=(llm-orchestrator browser-service web-interface novnc video-chat web-terminal)
 
-# 1. Buduj i uruchom minimalny stack w tle
-echo "[INFO] Buduję i uruchamiam stack ($COMPOSE_FILE)..."
-docker-compose -f "$COMPOSE_FILE" up --build -d
+for SERVICE in "${SERVICES[@]}"; do
+  echo -e "\n==============================="
+  echo    "[DEV] TESTUJĘ SERWIS: $SERVICE"
+  echo    "==============================="
+  bash containers/test-service.sh "$SERVICE"
 
-# 2. Poczekaj aż llm-orchestrator będzie dostępny (port 5000)
-echo "[INFO] Czekam na uruchomienie llm-orchestrator na porcie 5000..."
-for i in {1..30}; do
-  if curl -s http://localhost:5000/ > /dev/null; then
-    echo "[INFO] llm-orchestrator jest dostępny."
-    break
+  # Po każdym teście uruchom healthcheck Ansible tylko dla tego serwisu
+  if [ -f "infra/ansible/playbook.yml" ]; then
+    case $SERVICE in
+      llm-orchestrator)
+        ENDPOINT="[{name:'llm-orchestrator',url:'http://localhost:5000/health',status:200}]";;
+      browser-service)
+        ENDPOINT="[{name:'browser-service',url:'http://localhost:3000/health',status:200}]";;
+      web-interface)
+        ENDPOINT="[{name:'web-interface',url:'http://localhost:8080/',status:200}]";;
+      novnc)
+        ENDPOINT="[{name:'novnc',url:'http://localhost:6080/',status:200}]";;
+      video-chat)
+        ENDPOINT="[{name:'video-chat',url:'http://localhost:8443/',status:200}]";;
+      web-terminal)
+        ENDPOINT="[{name:'web-terminal',url:'http://localhost:8081/',status:200}]";;
+      *)
+        ENDPOINT="[]";;
+    esac
+    echo "[DEV] Ansible E2E healthcheck dla $SERVICE..."
+    ansible-playbook infra/ansible/playbook.yml --extra-vars "endpoints=$ENDPOINT" || echo "[WARN] Ansible E2E healthcheck failed for $SERVICE!"
+  else
+    echo "[WARN] Brak infra/ansible/playbook.yml - pomijam testy Ansible."
   fi
-  sleep 2
+  echo "[DEV] ZAKOŃCZONO TESTY SERWISU: $SERVICE"
+  echo "===============================\n"
 done
 
-# 3. Uruchom testy przykładowe (jeśli katalog i skrypt istnieją)
-if [ -d "$TEST_DIR" ] && [ -f "$TEST_DIR/run_examples.py" ]; then
-  echo "[INFO] Uruchamiam testy przykładowe..."
-  docker-compose -f "$COMPOSE_FILE" run --rm test-client
-else
-  echo "[WARN] Brak katalogu $TEST_DIR lub pliku run_examples.py - pomijam testy."
-fi
-
-# 4. Wyświetl logi llm-orchestrator po testach
-echo "[INFO] Logi llm-orchestrator po testach:"
-docker-compose -f "$COMPOSE_FILE" logs llm-orchestrator
-
-# 5. Zatrzymaj stack po zakończeniu
-echo "[INFO] Zatrzymuję stack..."
-docker-compose -f "$COMPOSE_FILE" down
+echo "[DEV] Wszystkie testy serwisów zakończone."

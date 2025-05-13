@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  video-chat:
+    build:
+      context: ./containers/video-chat
+    ports:
+      - "8443:443"
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost:443/", "--insecure"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

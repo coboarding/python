@@ -1,8 +1,28 @@
 ---
-- name: Przykładowy playbook Ansible
+- name: E2E Healthcheck for coBoarding services
   hosts: localhost
   gather_facts: false
+  vars:
+    endpoints:
+      - { name: 'llm-orchestrator', url: 'http://localhost:5000/health', status: 200 }
+      - { name: 'browser-service', url: 'http://localhost:3000/health', status: 200 }
+      - { name: 'web-interface', url: 'http://localhost:8080/', status: 200 }
+      - { name: 'novnc', url: 'http://localhost:6080/', status: 200 }
+      - { name: 'video-chat', url: 'http://localhost:8443/', status: 200 }
+      - { name: 'web-terminal', url: 'http://localhost:8081/', status: 200 }
   tasks:
-    - name: Wyświetl komunikat
+    - name: Check health endpoints of all services
+      ansible.builtin.uri:
+        url: "{{ item.url }}"
+        status_code: "{{ item.status }}"
+        validate_certs: false
+        timeout: 5
+      register: result
+      failed_when: result.status != item.status
+      with_items: "{{ endpoints }}"
+      ignore_errors: false
+
+    - name: Print healthcheck results
       ansible.builtin.debug:
-        msg: "Hello from Ansible!"
+        msg: "Service {{ item.item.name }}: status={{ item.status }} url={{ item.item.url }}"
+      with_items: "{{ result.results }}"

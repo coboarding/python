@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.12] - 2025-05-13
+
+### Added
+- Changes in dev.sh
+- Changes in infra/ansible/playbook.yml
+- Changes in install.sh
+- Changes in pyproject.toml
+- Changes in setup.py
+- Changes in stop.sh
+- Changes in tests.sh
+
+### Removed
+- Changes in containers/test-runner/tests/test-browser-service.py
+- Changes in containers/test-runner/tests/test-complex-form.py
+- Changes in containers/test-runner/tests/test-file-upload.py
+- Changes in containers/test-runner/tests/test-healthcheck.py
+- Changes in containers/test-runner/tests/test-ports.py
+- Changes in containers/test-runner/tests/test-simple-form.py
+
 ## [0.1.11] - 2025-05-13
 
 ### Added

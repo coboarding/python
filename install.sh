@@ -383,6 +383,22 @@ echo "[DEBUG] Zakończono instalację zależności z requirements.txt..."; say "
 say "Zakończono instalację zależności z requirements.txt."
 
 
+# Instalacja zależności testowych (selenium, pytest) do venv
+if [ -z "$VIRTUAL_ENV" ]; then
+  if [ -d "venv" ]; then
+    LOG "Aktywuję środowisko venv do instalacji zależności testowych..."
+    source venv/bin/activate
+  else
+    LOG "Tworzę środowisko venv do instalacji zależności testowych..."
+    python3 -m venv venv
+    source venv/bin/activate
+  fi
+fi
+
+LOG "Instaluję selenium i pytest do środowiska venv..."
+pip install --upgrade pip
+pip install selenium pytest
+
 # Ensure beautifulsoup4 is installed (for e2e/test-runner)
 pip show beautifulsoup4 >/dev/null 2>&1 || pip install beautifulsoup4
 

@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  web-interface:
+    build:
+      context: ./containers/web-interface
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
