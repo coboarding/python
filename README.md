@@ -96,6 +96,7 @@ System działa na architekturze mikroserwisowej (browser-service, llm-orchestrat
 
 ## 📚 Spis treści / Menu
 - [Szybki start](#szybki-start)
+- [Obsługa Mermaid na GitHub Pages](#obsługa-mermaid-na-github-pages-htmljekyll)
 - [Obsługa Mermaid na GitLab Pages](#obsługa-mermaid-na-gitlab-pages)
 - [Jak to działa](#jak-to-działa)
 - [Przykłady zastosowań](#przykłady-zastosowań)
@@ -121,7 +122,7 @@ Aby automatycznie renderować diagramy Mermaid na GitHub Pages lub w statycznej 
 
 2. Umieszczaj diagramy w README.md lub innych plikach Markdown jako:
 
-    ````markdown
+    ````
     ```mermaid
     flowchart TD
         A --> B
@@ -168,7 +169,7 @@ Aby poprawnie renderować diagramy Mermaid na GitLab Pages:
 
 Przykład użycia:
 
-```markdown
+````
 ```mermaid
 flowchart TD
     A --> B
