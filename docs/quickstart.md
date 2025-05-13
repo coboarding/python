@@ -3,7 +3,7 @@
 1. Sklonuj repozytorium:
    ```bash
    git clone https://github.com/coboarding/python.git
-   cd coBoarding
+   cd coboarding
    ```
 2. Uruchom instalację:
    ```bash

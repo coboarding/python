@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.15] - 2025-05-13
+
+### Added
+- Changes in docs/quickstart.md
+- Changes in pyproject.toml
+- Changes in setup.py
+
 ## [0.1.14] - 2025-05-13
 
 ### Added
