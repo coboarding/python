@@ -1,7 +1,15 @@
 # coBoarding
 
-![Diagram architektury](docs/architecture.png)
-*Schemat architektury systemu coBoarding – mikroserwisy, komunikacja przez Docker, web UI*
+```mermaid
+flowchart TD
+    U[Użytkownik] -->|Web UI| WI(Web Interface)
+    WI -->|Sterowanie| BS(Browser Service)
+    WI -->|Komunikacja| LLM(LLM Orchestrator)
+    BS -->|noVNC| NV(noVNC)
+    LLM -->|API| BS
+    WI -->|Integracja| PW(Bitwarden/PassBolt)
+```
+*Diagram architektury systemu (Mermaid)*
 
 coBoarding to kompleksowy, kontenerowy system do automatycznego wypełniania formularzy rekrutacyjnych, kładący nacisk na prywatność, elastyczność oraz wsparcie wielojęzyczne.
 
@@ -27,6 +35,24 @@ Pierwsze uruchomienie automatycznie skonfiguruje środowisko (venv, zależności
 > **WAŻNE:** Projekt wymaga Docker Compose v2 (polecenie `docker compose`). Skrypt `install.sh` instaluje go automatycznie jako plugin CLI.
 
 ---
+
+```mermaid
+sequenceDiagram
+    participant U as Użytkownik
+    participant WI as Web Interface
+    participant LLM as LLM Orchestrator
+    participant BS as Browser Service
+    participant PW as Password Manager
+    U->>WI: Start aplikacji
+    WI->>LLM: Wykryj język, dobierz model
+    WI->>PW: Pobierz dane logowania
+    WI->>BS: Rozpocznij automatyzację
+    BS->>WI: Wizualizacja przez noVNC
+    BS->>LLM: Zapytania LLM
+    LLM->>BS: Odpowiedzi
+    WI->>U: Wyniki procesu
+```
+*Diagram przepływu działania (Mermaid)*
 
 ## Jak to działa
 
@@ -67,6 +93,28 @@ System działa na architekturze mikroserwisowej (browser-service, llm-orchestrat
 - [Scenariusze testowe](#scenariusze-testowe)
 - [FAQ](#faq)
 - [Kontakt i wsparcie](#kontakt-i-wsparcie)
+
+---
+
+## Obsługa Mermaid na GitLab Pages
+
+Aby poprawnie renderować diagramy Mermaid na GitLab Pages:
+- GitLab obsługuje Mermaid natywnie w Markdown (` ```mermaid ... ``` `) od wersji 14.9+.
+- Jeśli korzystasz z GitLab Pages lub GitLab Docs, upewnij się, że:
+  - Pliki `.md` są renderowane przez wbudowany silnik GitLab (nie przez zewnętrzny generator).
+  - W przypadku korzystania z generatorów statycznych (np. MkDocs, Jekyll), zainstaluj odpowiednią wtyczkę Mermaid lub użyj [Mermaid Live Editor](https://mermaid-js.github.io/mermaid-live-editor/) do generowania SVG/PNG.
+- Więcej informacji: [GitLab Docs – Mermaid](https://docs.gitlab.com/ee/user/markdown.html#mermaid-diagrams)
+
+Przykład użycia:
+
+```markdown
+```mermaid
+flowchart TD
+    A --> B
+```
+```
+
+Diagram zostanie automatycznie wyrenderowany na GitLabie.
 
 ## Instalacja środowiska (Python 3.11+ / 3.12 na Ubuntu 24.10+)
 
