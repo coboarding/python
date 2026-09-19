@@ -12,33 +12,45 @@ System do uruchamiania i testowania modeli językowych (LLM) w architekturze mik
 
 ## Wymagania
 
-- Docker
-- docker-compose
-- Minimum 4GB RAM dla kontenera modelu LLM
-- Dostęp do internetu (do pobierania obrazów Docker i modeli)
+- MicroK8s (zalecane) lub inny klaster Kubernetes
+- kubectl (lub microk8s kubectl)
+- Minimum 4GB RAM dla podu modelu LLM
+- Dostęp do internetu (do pobierania obrazów i modeli)
 
 ## Szybki start
 
-### 1. Uruchomienie systemu
+### 1. Instalacja MicroK8s i wymaganych narzędzi
 
 ```bash
-./run.sh
+sudo snap install microk8s --classic
+sudo microk8s enable dns storage
 ```
 
-Ten skrypt automatycznie:
-- Sprawdza wymagania systemowe
-- Wykonuje migrację do mikrousług (jeśli potrzebna)
-- Buduje i uruchamia wszystkie kontenery
-- Konfiguruje środowisko testowe
+### 2. Budowa obrazu model-service i import do MicroK8s
 
-### 2. Testowanie systemu
+```bash
+# Buduj obraz Docker lokalnie
+cd microservices/model-service
+sudo docker build -t llm-model-service:latest .
+# Zapisz i zaimportuj do MicroK8s
+sudo docker save llm-model-service:latest | sudo microk8s ctr image import -
+```
 
-Po uruchomieniu systemu:
+### 3. Uruchomienie usług na Kubernetes
+
+```bash
+cd ../../k8s
+sudo microk8s kubectl apply -f model-service-deployment.yaml
+sudo microk8s kubectl apply -f novnc-deployment.yaml
+```
+
+### 4. Testowanie systemu
 
 1. Otwórz przeglądarkę i przejdź do adresu:
    ```
-   http://localhost:6080
+   http://<IP_NODES>:30080
    ```
+   (Użyj polecenia `sudo microk8s kubectl get nodes -o wide` aby znaleźć IP)
 
 2. Zaloguj się do noVNC używając hasła:
    ```
@@ -50,15 +62,18 @@ Po uruchomieniu systemu:
    file:///config/test_llm.html
    ```
 
-### 3. Monitorowanie systemu
+### 5. Monitorowanie systemu
 
 Aby monitorować stan usług i postęp ładowania modelu LLM:
 
 ```bash
-./monitor.sh
+sudo microk8s kubectl get pods,pvc,svc
 ```
 
-Dostępne opcje monitorowania:
+Możesz sprawdzić logi podów:
+```bash
+sudo microk8s kubectl logs <nazwa-poda>
+```
 - `./monitor.sh --live` - monitorowanie w czasie rzeczywistym (aktualizacja co 5 sekund)
 - `./monitor.sh --summary` - wyświetlenie tylko podsumowania statusu
 - `./monitor.sh --model` - monitorowanie procesu ładowania modelu
@@ -103,13 +118,9 @@ Szczegółowa dokumentacja jest dostępna w katalogu `docs`:
 
 ```
 llm-orchestrator-min/
-├── docker-compose.yml           # Konfiguracja mikrousług
-├── run.sh                       # Skrypt do standardowego uruchomienia
-├── reset_and_run.sh             # Skrypt do resetowania i ręcznego uruchomienia
-├── stop.sh                      # Skrypt do zatrzymania systemu
-├── monitor.sh                   # Skrypt do monitorowania statusu systemu
-├── fix_model_service.sh         # Skrypt do naprawy problemów z modelem
-├── setup_novnc_test.sh          # Skrypt do konfiguracji środowiska testowego
+├── k8s/
+│   ├── model-service-deployment.yaml   # Manifesty Kubernetes dla model-service i cache
+│   └── novnc-deployment.yaml           # Manifesty Kubernetes dla noVNC
 ├── microservices/               # Katalog z mikrousługami
 │   ├── api-gateway/             # Brama API (Traefik)
 │   └── model-service/           # Usługa modelu LLM
@@ -122,7 +133,7 @@ llm-orchestrator-min/
 
 ## Konfiguracja
 
-Główne parametry konfiguracyjne są dostępne w pliku `docker-compose.yml`:
+Główne parametry konfiguracyjne są dostępne w plikach manifestów Kubernetes (`k8s/model-service-deployment.yaml`):
 
 - **MODEL_PATH**: Ścieżka do plików modelu
 - **USE_INT8**: Flaga włączająca kwantyzację INT8
